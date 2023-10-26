@@ -13,13 +13,21 @@ Data Sources are used to query third party APIs and SquaredUp visualizes the res
 ## Example Usage
 
 ```terraform
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
   data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "sample_data_source" {
   display_name     = "Sample Data"
-  data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+  data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
+}
+resource "squaredup_datasource" "ado_datasource" {
+  display_name     = "Azure DevOps"
+  data_source_name = "Azure DevOps"
+  config = jsonencode({
+    org         = "org-name"
+    accessToken = "access-token"
+  })
 }
 ```
 
@@ -34,8 +42,7 @@ resource "squaredup_datasource" "sample_data_source" {
 ### Optional
 
 - `agent_group_id` (String) The ID of the agent group to which the data source should connect to (on-prem data sources only)
-- `json_data_encoded` (String) Additional configuration for configuring data source. Needs to be a valid JSON
-- `secure_json_data_encoded` (String, Sensitive) Sensitive configuration for the data source. Needs to be a valid JSON
+- `config` (String, Sensitive) Sensitive configuration for the data source. Needs to be a valid JSON
 
 ### Read-Only
 
