@@ -11,17 +11,17 @@ provider "squaredup" {
   api_key = "api-key"
 }
 
-data "squaredup_latest_datasources" "azure_devops" {
+data "squaredup_datasources" "azure_devops" {
   data_source_name = "Azure DevOps"
 }
 
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
   data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "ado_datasource" {
   display_name     = "Azure DevOps"
-  data_source_name = data.squaredup_latest_datasources.azure_devops.plugins[0].display_name
+  data_source_name = data.squaredup_datasources.azure_devops.plugins[0].display_name
   json_data_encoded = jsonencode({
     org = "org-name"
   })
@@ -32,7 +32,7 @@ resource "squaredup_datasource" "ado_datasource" {
 
 resource "squaredup_datasource" "sample_data_source" {
   display_name     = "Sample Data"
-  data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+  data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
 resource "squaredup_workspace" "application_workspace" {
@@ -51,7 +51,7 @@ resource "squaredup_workspace" "devops_workspace" {
 }
 
 data "squaredup_data_streams" "azure_devops_dataStreams" {
-  data_source_id = data.squaredup_latest_datasources.azure_devops.plugins[0].id
+  data_source_id = data.squaredup_datasources.azure_devops.plugins[0].id
 }
 
 locals {
@@ -60,17 +60,17 @@ locals {
 }
 
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {
-  data_source_id              = data.squaredup_latest_datasources.sample_data.plugins[0].id
+  data_source_id              = data.squaredup_datasources.sample_data.plugins[0].id
   data_stream_definition_name = "logs"
 }
 
 data "squaredup_data_streams" "sample_data_lambdaerrors_dataStreams" {
-  data_source_id              = data.squaredup_latest_datasources.sample_data.plugins[0].id
+  data_source_id              = data.squaredup_datasources.sample_data.plugins[0].id
   data_stream_definition_name = "perf-lambda-errors"
 }
 
 resource "squaredup_dashboard" "devops_team_dashboard" {
-  dashboard_template = file(".\\dashboardTemplate.json")
+  dashboard_template = file("dashboardTemplate.json")
   template_bindings = jsonencode({
     azure_devops_data_source_id = squaredup_datasource.ado_datasource.id
     sample_data_source_id       = squaredup_datasource.sample_data_source.id

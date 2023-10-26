@@ -39,7 +39,7 @@ type squaredupPluginModel struct {
 }
 
 func (d *squaredupLatestDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_latest_datasources"
+	resp.TypeName = req.ProviderTypeName + "_datasources"
 }
 
 func (d *squaredupLatestDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
