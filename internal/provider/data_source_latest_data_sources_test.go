@@ -13,13 +13,13 @@ func TestLatestDataSourcesDataSource(t *testing.T) {
 			{
 				Config: providerConfig +
 					`
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.squaredup_latest_datasources.sample_data", "plugins.#", "1"),
-					resource.TestCheckResourceAttr("data.squaredup_latest_datasources.sample_data", "plugins.0.display_name", "Sample Data"),
+					resource.TestCheckResourceAttr("data.squaredup_datasources.sample_data", "plugins.#", "1"),
+					resource.TestCheckResourceAttr("data.squaredup_datasources.sample_data", "plugins.0.display_name", "Sample Data"),
 				),
 			},
 		},

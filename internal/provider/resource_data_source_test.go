@@ -13,13 +13,13 @@ func TestDataSourceResource(t *testing.T) {
 			//Create DataSource Test
 			{
 				Config: providerConfig + `
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "sample_data_source" {
 	display_name     = "Test - Sample Data"
-	data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
@@ -31,13 +31,13 @@ resource "squaredup_datasource" "sample_data_source" {
 			//Update DataSource Test
 			{
 				Config: providerConfig + `
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "sample_data_source" {
 	display_name     = "Test - Sample Data Updated"
-	data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 `,
 				Check: resource.ComposeTestCheckFunc(

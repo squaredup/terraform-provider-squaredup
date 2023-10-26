@@ -34,13 +34,12 @@ func (r *dataSourceResource) Metadata(_ context.Context, req resource.MetadataRe
 }
 
 type dataSource struct {
-	DisplayName      types.String `tfsdk:"display_name"`
-	ID               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"data_source_name"`
-	AdditionalConfig types.String `tfsdk:"json_data_encoded"`
-	SecureJsonData   types.String `tfsdk:"secure_json_data_encoded"`
-	AgentGroupID     types.String `tfsdk:"agent_group_id"`
-	LastUpdated      types.String `tfsdk:"last_updated"`
+	DisplayName  types.String `tfsdk:"display_name"`
+	ID           types.String `tfsdk:"id"`
+	Name         types.String `tfsdk:"data_source_name"`
+	Config       types.String `tfsdk:"config"`
+	AgentGroupID types.String `tfsdk:"agent_group_id"`
+	LastUpdated  types.String `tfsdk:"last_updated"`
 }
 
 func (r *dataSourceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -62,12 +61,7 @@ func (r *dataSourceResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Display name of the data source",
 				Required:    true,
 			},
-			"json_data_encoded": schema.StringAttribute{
-				Description: "Additional configuration for configuring data source. Needs to be a valid JSON",
-				Optional:    true,
-				CustomType:  basetypes.StringType{},
-			},
-			"secure_json_data_encoded": schema.StringAttribute{
+			"config": schema.StringAttribute{
 				Description: "Sensitive configuration for the data source. Needs to be a valid JSON",
 				Optional:    true,
 				CustomType:  basetypes.StringType{},
@@ -113,22 +107,11 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	var plugin_config map[string]interface{}
-	if plan.AdditionalConfig.ValueString() != "" {
-		if err := json.Unmarshal([]byte(plan.AdditionalConfig.ValueString()), &plugin_config); err != nil {
+	if plan.Config.ValueString() != "" {
+		if err := json.Unmarshal([]byte(plan.Config.ValueString()), &plugin_config); err != nil {
 			resp.Diagnostics.AddError(
-				"Error unmarshalling json_data_encoded",
-				fmt.Sprintf("Error unmarshalling json_data_encoded: %v", err),
-			)
-			return
-		}
-	}
-
-	var secure_json_data map[string]interface{}
-	if plan.SecureJsonData.ValueString() != "" {
-		if err := json.Unmarshal([]byte(plan.SecureJsonData.ValueString()), &secure_json_data); err != nil {
-			resp.Diagnostics.AddError(
-				"Error unmarshalling secure_json_data_encoded",
-				fmt.Sprintf("Error unmarshalling secure_json_data_encoded: %v", err),
+				"Error unmarshalling config",
+				fmt.Sprintf("Error unmarshalling config: %v", err),
 			)
 			return
 		}
@@ -138,7 +121,6 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 		plan.DisplayName.ValueString(),
 		plan.Name.ValueString(),
 		plugin_config,
-		secure_json_data,
 		plan.AgentGroupID.ValueString(),
 	)
 	if err != nil {
@@ -157,12 +139,8 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 		LastUpdated:  types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
-	if plan.AdditionalConfig.ValueString() != "" {
-		state.AdditionalConfig = types.StringValue(plan.AdditionalConfig.ValueString())
-	}
-
-	if plan.SecureJsonData.ValueString() != "" {
-		state.SecureJsonData = types.StringValue(plan.SecureJsonData.ValueString())
+	if plan.Config.ValueString() != "" {
+		state.Config = types.StringValue(plan.Config.ValueString())
 	}
 
 	diags = resp.State.Set(ctx, state)
@@ -194,12 +172,8 @@ func (r *dataSourceResource) Read(ctx context.Context, req resource.ReadRequest,
 	state.AgentGroupID = types.StringValue(readDataSource.AgentGroupID)
 	state.ID = types.StringValue(readDataSource.ID)
 
-	if state.AdditionalConfig.ValueString() != "" {
-		state.AdditionalConfig = types.StringValue(state.AdditionalConfig.ValueString())
-	}
-
-	if state.SecureJsonData.ValueString() != "" {
-		state.SecureJsonData = types.StringValue(state.SecureJsonData.ValueString())
+	if state.Config.ValueString() != "" {
+		state.Config = types.StringValue(state.Config.ValueString())
 	}
 
 	diags = resp.State.Set(ctx, state)
@@ -225,22 +199,11 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	var plugin_config map[string]interface{}
-	if plan.AdditionalConfig.ValueString() != "" {
-		if err := json.Unmarshal([]byte(plan.AdditionalConfig.ValueString()), &plugin_config); err != nil {
+	if plan.Config.ValueString() != "" {
+		if err := json.Unmarshal([]byte(plan.Config.ValueString()), &plugin_config); err != nil {
 			resp.Diagnostics.AddError(
-				"Error unmarshalling json_data_encoded",
-				fmt.Sprintf("Error unmarshalling json_data_encoded: %v", err),
-			)
-			return
-		}
-	}
-
-	var secure_json_data map[string]interface{}
-	if plan.SecureJsonData.ValueString() != "" {
-		if err := json.Unmarshal([]byte(plan.SecureJsonData.ValueString()), &secure_json_data); err != nil {
-			resp.Diagnostics.AddError(
-				"Error unmarshalling secure_json_data_encoded",
-				fmt.Sprintf("Error unmarshalling secure_json_data_encoded: %v", err),
+				"Error unmarshalling config",
+				fmt.Sprintf("Error unmarshalling config: %v", err),
 			)
 			return
 		}
@@ -251,7 +214,6 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 		plan.DisplayName.ValueString(),
 		plan.Name.ValueString(),
 		plugin_config,
-		secure_json_data,
 		plan.AgentGroupID.ValueString(),
 	)
 	if err != nil {
@@ -279,12 +241,8 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 		LastUpdated:  types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
-	if plan.AdditionalConfig.ValueString() != "" {
-		state.AdditionalConfig = types.StringValue(plan.AdditionalConfig.ValueString())
-	}
-
-	if plan.SecureJsonData.ValueString() != "" {
-		state.SecureJsonData = types.StringValue(plan.SecureJsonData.ValueString())
+	if plan.Config.ValueString() != "" {
+		state.Config = types.StringValue(plan.Config.ValueString())
 	}
 
 	diags = resp.State.Set(ctx, state)

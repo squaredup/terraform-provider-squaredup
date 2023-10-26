@@ -13,13 +13,13 @@ func TestDashboardResource(t *testing.T) {
 			//Create Dashboard Test
 			{
 				Config: providerConfig + `
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 	
 resource "squaredup_datasource" "sample_data_source" {
 	display_name     = "Sample Data"
-	data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 	
 resource "squaredup_workspace" "application_workspace" {
@@ -29,7 +29,7 @@ resource "squaredup_workspace" "application_workspace" {
 }
 	
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {
-	data_source_id = data.squaredup_latest_datasources.sample_data.plugins[0].id
+	data_source_id = data.squaredup_datasources.sample_data.plugins[0].id
 }
 	
 locals {
@@ -149,13 +149,13 @@ EOT
 			//Update Dashboard Test
 			{
 				Config: providerConfig + `
-data "squaredup_latest_datasources" "sample_data" {
+data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 	
 resource "squaredup_datasource" "sample_data_source" {
 	display_name     = "Sample Data"
-	data_source_name = data.squaredup_latest_datasources.sample_data.plugins[0].display_name
+	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 	
 resource "squaredup_workspace" "application_workspace" {
@@ -165,7 +165,7 @@ resource "squaredup_workspace" "application_workspace" {
 }
 	
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {
-	data_source_id = data.squaredup_latest_datasources.sample_data.plugins[0].id
+	data_source_id = data.squaredup_datasources.sample_data.plugins[0].id
 }
 	
 locals {

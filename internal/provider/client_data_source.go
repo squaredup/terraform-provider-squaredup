@@ -42,7 +42,7 @@ func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string) ([]Late
 	return plugins, nil
 }
 
-func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name string, pluginConfig map[string]interface{}, secureJsonData map[string]interface{}, agentGroupId string) (map[string]interface{}, error) {
+func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) (map[string]interface{}, error) {
 	plugins, err := c.GetLatestDataSources(name)
 	if err != nil {
 		return nil, err
@@ -76,20 +76,11 @@ func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name str
 		config[key] = value
 	}
 
-	for key, value := range secureJsonData {
-		config, ok := DataSourcePayload["config"].(map[string]interface{})
-		if !ok {
-			config = make(map[string]interface{})
-			DataSourcePayload["config"] = config
-		}
-		config[key] = value
-	}
-
 	return DataSourcePayload, nil
 }
 
-func (c *SquaredUpClient) AddDataSource(displayName string, name string, pluginConfig map[string]interface{}, secureJsonData map[string]interface{}, agentGroupId string) (*DataSource, error) {
-	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, secureJsonData, agentGroupId)
+func (c *SquaredUpClient) AddDataSource(displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) (*DataSource, error) {
+	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, agentGroupId)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +129,8 @@ func (c *SquaredUpClient) GetDataSource(dataSourceId string) (*DataSource, error
 	return &dataSource, nil
 }
 
-func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName string, name string, pluginConfig map[string]interface{}, secureJsonData map[string]interface{}, agentGroupId string) error {
-	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, secureJsonData, agentGroupId)
+func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) error {
+	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, agentGroupId)
 	if err != nil {
 		return err
 	}
