@@ -95,3 +95,11 @@ type AlertingChannelType struct {
 	ImagePreviewSupported bool   `json:"imagePreviewSupported"`
 	Description           string `json:"description"`
 }
+
+type AlertingChannel struct {
+	ID            string                 `json:"id"`
+	DisplayName   string                 `json:"displayName"`
+	ChannelTypeID string                 `json:"channelTypeId"`
+	Config        map[string]interface{} `json:"config"`
+	Enabled       bool                   `json:"enabled"`
+}
