@@ -87,3 +87,11 @@ type Dashboard struct {
 	Name          string               `json:"name"`
 	SchemaVersion string               `json:"schemaVersion"`
 }
+
+type AlertingChannelType struct {
+	ChannelID             string `json:"id"`
+	DisplayName           string `json:"displayName"`
+	Protocol              string `json:"protocol"`
+	ImagePreviewSupported bool   `json:"imagePreviewSupported"`
+	Description           string `json:"description"`
+}
