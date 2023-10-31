@@ -29,3 +29,6 @@ terraform.rc
 
 # Ignore Build Binaries
 *.exe
+
+# Ignore lock files
+**/.terraform.lock.hcl
