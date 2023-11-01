@@ -7,7 +7,8 @@ import (
 	"context"
 	"flag"
 	"log"
-	"terraform-provider-squaredup/internal/provider"
+
+	"github.com/squaredup/terraform-provider-squaredup/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
