@@ -1,4 +1,4 @@
-module terraform-provider-squaredup
+module github.com/squaredup/terraform-provider-squaredup
 
 go 1.21.3
 
