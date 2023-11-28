@@ -23,7 +23,7 @@ resource "squaredup_datasource" "sample_data_source" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "display_name", "Test - Sample Data"),
+					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "display_name", "Sample Data - DataSource Test"),
 					resource.TestCheckResourceAttrSet("squaredup_datasource.sample_data_source", "id"),
 					resource.TestCheckResourceAttrSet("squaredup_datasource.sample_data_source", "last_updated"),
 				),
@@ -41,7 +41,7 @@ resource "squaredup_datasource" "sample_data_source" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "display_name", "Test - Sample Data Updated"),
+					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "display_name", "Sample Data - DataSource Test Updated"),
 				),
 			},
 			// Import DataSource Test
