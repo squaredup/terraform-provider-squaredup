@@ -18,7 +18,7 @@ data "squaredup_datasources" "sample_data" {
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Test - Sample Data"
+	display_name     = "Sample Data - DataSource Test"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 `,
@@ -36,7 +36,7 @@ data "squaredup_datasources" "sample_data" {
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Test - Sample Data Updated"
+	display_name     = "Sample Data - DataSource Test Updated"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 `,
