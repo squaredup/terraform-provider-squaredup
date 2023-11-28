@@ -9,5 +9,5 @@ resource "squaredup_datasource" "sample_data_source" {
 
 data "squaredup_nodes" "ado_nodes" {
   data_source_id = squaredup_datasource.sample_data_source.id
-  node_name = "account-common-lambda"
+  node_name      = "account-common-lambda"
 }
