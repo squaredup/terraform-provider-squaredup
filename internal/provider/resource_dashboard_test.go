@@ -18,12 +18,12 @@ data "squaredup_datasources" "sample_data" {
 }
 	
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data"
+	display_name     = "Sample Data - Dashboard Test"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 	
 resource "squaredup_workspace" "application_workspace" {
-	display_name      = "Application Team"
+	display_name      = "Application Team - Dashboard Test"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
 }
