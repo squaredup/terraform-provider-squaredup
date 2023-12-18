@@ -90,7 +90,7 @@ func (c *SquaredUpClient) AddDataSource(displayName string, name string, pluginC
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", c.baseURL+"/api/source/configs", strings.NewReader(string(rb)))
+	req, err := http.NewRequest("POST", c.baseURL+"/api/datasources", strings.NewReader(string(rb)))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (c *SquaredUpClient) AddDataSource(displayName string, name string, pluginC
 }
 
 func (c *SquaredUpClient) GetDataSource(dataSourceId string) (*DataSource, error) {
-	req, err := http.NewRequest("GET", c.baseURL+"/api/source/configs/"+dataSourceId, nil)
+	req, err := http.NewRequest("GET", c.baseURL+"/api/datasources/"+dataSourceId, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName stri
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", c.baseURL+"/api/source/configs/"+dataSourceId, strings.NewReader(string(rb)))
+	req, err := http.NewRequest("PUT", c.baseURL+"/api/datasources/"+dataSourceId, strings.NewReader(string(rb)))
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName stri
 }
 
 func (c *SquaredUpClient) DeleteDataSource(dataSourceId string) error {
-	req, err := http.NewRequest("DELETE", c.baseURL+"/api/source/configs/"+dataSourceId, nil)
+	req, err := http.NewRequest("DELETE", c.baseURL+"/api/datasources/"+dataSourceId, nil)
 	if err != nil {
 		return err
 	}
