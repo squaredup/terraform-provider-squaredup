@@ -7,11 +7,13 @@ import (
 
 	"github.com/cbroglie/mustache"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -36,6 +38,7 @@ type squaredupDashboard struct {
 	DashboardTemplate jsontypes.Normalized `tfsdk:"dashboard_template"`
 	TemplateBindings  jsontypes.Normalized `tfsdk:"template_bindings"`
 	DashboardContent  jsontypes.Normalized `tfsdk:"dashboard_content"`
+	Timeframe         types.String         `tfsdk:"timeframe"`
 	Group             types.String         `tfsdk:"group"`
 	Name              types.String         `tfsdk:"name"`
 	SchemaVersion     types.String         `tfsdk:"schema_version"`
@@ -80,6 +83,24 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Description: "The content of the dashboard. This is the rendered dashboard template with the template bindings applied.",
 				Computed:    true,
 				CustomType:  jsontypes.NormalizedType{},
+			},
+			"timeframe": schema.StringAttribute{
+				Description: "The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear",
+				Optional:    true,
+				Computed:    true,
+				Validators: []validator.String{stringvalidator.OneOf(
+					"last1hour",
+					"last12hours",
+					"last24hours",
+					"last7days",
+					"last30days",
+					"thisMonth",
+					"thisQuarter",
+					"thisYear",
+					"lastMonth",
+					"lastQuarter",
+					"lastYear",
+				)},
 			},
 			"group": schema.StringAttribute{
 				Description: "The group of the dashboard",
@@ -149,7 +170,7 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		plan.TemplateBindings = jsontypes.NewNormalizedNull()
 	}
 
-	dashboard, err := r.client.CreateDashboard(plan.DisplayName.ValueString(), plan.WorkspaceID.ValueString(), updatedDashboard)
+	dashboard, err := r.client.CreateDashboard(plan.DisplayName.ValueString(), plan.WorkspaceID.ValueString(), plan.Timeframe.ValueString(), updatedDashboard)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create dashboard",
@@ -165,6 +186,7 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		DashboardTemplate: plan.DashboardTemplate,
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
+		Timeframe:         types.StringValue(dashboard.Timeframe),
 		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
@@ -203,6 +225,7 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 		DashboardTemplate: state.DashboardTemplate,
 		TemplateBindings:  state.TemplateBindings,
 		DashboardContent:  state.DashboardContent,
+		Timeframe:         types.StringValue(dashboard.Timeframe),
 		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
@@ -253,7 +276,7 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		plan.TemplateBindings = jsontypes.NewNormalizedNull()
 	}
 
-	dashboard, err := r.client.UpdateDashboard(state.DashboardID.ValueString(), plan.DisplayName.ValueString(), state.DashboardID.String(), updatedDashboard)
+	dashboard, err := r.client.UpdateDashboard(state.DashboardID.ValueString(), plan.DisplayName.ValueString(), state.DashboardID.String(), plan.Timeframe.ValueString(), updatedDashboard)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to update dashboard",
@@ -269,6 +292,7 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		DashboardTemplate: plan.DashboardTemplate,
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
+		Timeframe:         types.StringValue(dashboard.Timeframe),
 		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),

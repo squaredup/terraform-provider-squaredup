@@ -86,6 +86,7 @@ type Dashboard struct {
 	Group         string               `json:"group,omitempty"`
 	Name          string               `json:"name"`
 	SchemaVersion string               `json:"schemaVersion"`
+	Timeframe     string               `json:"timeframe,omitempty"`
 }
 
 type SquaredupGremlinQuery struct {
