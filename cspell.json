@@ -1,5 +1,15 @@
 {
-    "cSpell.words": [
+    "version": "0.2",
+    "language": "en,en-US",
+    "allowCompoundWords": true,
+    "dictionaries": [
+        "en_US",
+        "en_GB",
+        "softwareTerms",
+        "golang",
+        "bash"
+    ],
+    "words": [
         "basetypes",
         "cbroglie",
         "datasource",
@@ -16,6 +26,7 @@
         "stringvalidator",
         "tfprotov",
         "tfsdk",
+        "timeframe",
         "unmarshalling",
         "visualisation"
     ]

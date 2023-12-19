@@ -129,6 +129,7 @@ EOT
   })
   workspace_id = squaredup_workspace.application_workspace.id
   display_name = "Sample Dashboard"
+  timeframe    = "last12hours"
 }
 ```
 
@@ -144,6 +145,7 @@ EOT
 ### Optional
 
 - `template_bindings` (String) Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.
+- `timeframe` (String) The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear
 
 ### Read-Only
 

@@ -114,4 +114,5 @@ EOT
   })
   workspace_id = squaredup_workspace.application_workspace.id
   display_name = "Sample Dashboard"
+  timeframe    = "last12hours"
 }
