@@ -7,7 +7,7 @@ import (
 )
 
 func (c *SquaredUpClient) GetDataStreams(dataSourceId string, DataStreamDefinitionName string) ([]DataSourceDataStreams, error) {
-	req, err := http.NewRequest("GET", c.baseURL+"/api/config/datastreams/plugin/"+dataSourceId, nil)
+	req, err := http.NewRequest("GET", c.baseURL+"/api/datastreams/plugin/"+dataSourceId, nil)
 	if err != nil {
 		return nil, err
 	}
