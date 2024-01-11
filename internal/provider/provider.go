@@ -152,6 +152,7 @@ func (p *squaredupProvider) DataSources(_ context.Context) []func() datasource.D
 		SquaredupDataSourcesDataSource,
 		SquaredUpDataStreams,
 		SquaredUpAlertingChannelTypes,
+		SquaredUpNodes,
 	}
 }
 

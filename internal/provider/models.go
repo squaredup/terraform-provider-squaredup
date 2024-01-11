@@ -86,6 +86,26 @@ type Dashboard struct {
 	Group         string               `json:"group,omitempty"`
 	Name          string               `json:"name"`
 	SchemaVersion string               `json:"schemaVersion"`
+	Timeframe     string               `json:"timeframe,omitempty"`
+}
+
+type SquaredupGremlinQuery struct {
+	GremlinQueryResults []GremlinQueryResult `json:"gremlinQueryResults"`
+}
+
+type GremlinQueryResult struct {
+	ID           string   `json:"id"`
+	Label        string   `json:"label"`
+	SourceName   []string `json:"sourceName"`
+	Type         []string `json:"type"`
+	SourceType   []string `json:"sourceType"`
+	Name         []string `json:"name"`
+	SourceId     []string `json:"sourceId"`
+	Search       []string `json:"__search"`
+	DisplayName  []string `json:"__name"`
+	PartitionKey []string `json:"__partitionKey"`
+	TenantId     []string `json:"__tenantId"`
+	ConfigId     []string `json:"__configId"`
 }
 
 type AlertingChannelType struct {
