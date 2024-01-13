@@ -152,7 +152,7 @@ EOT
 locals {
   dashboard_content = jsondecode(squaredup_dashboard.sample_dashboard.dashboard_content)
 
-  lambda_errors_tile = [for content in local.dashboard_content.contents : content.i if content.config.title == "Lambda Errors"]
+  lambda_errors_tile    = [for content in local.dashboard_content.contents : content.i if content.config.title == "Lambda Errors"]
   lambda_errors_tile_id = length(local.lambda_errors_tile) > 0 ? local.lambda_errors_tile[0] : null
 }
 
@@ -175,13 +175,24 @@ resource "squaredup_workspace_alert" "example" {
   workspace_id = squaredup_workspace.application_workspace.id
   alerting_rules = [
     {
-      channel = squaredup_alerting_channel.slack_api_alert.id
+      channel       = squaredup_alerting_channel.slack_api_alert.id
       preview_image = true
       condition = {
-        // only one of the following can be true
-        workspace_state = true
-        include_all_tiles = true
         tiles_id = [local.lambda_errors_tile_id]
+      }
+    },
+    {
+      channel       = squaredup_alerting_channel.slack_api_alert.id
+      preview_image = true
+      condition = {
+        workspace_state = true
+      }
+    },
+    {
+      channel       = squaredup_alerting_channel.slack_api_alert.id
+      preview_image = false
+      condition = {
+        include_all_tiles = true
       }
     }
   ]
