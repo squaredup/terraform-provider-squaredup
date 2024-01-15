@@ -176,24 +176,24 @@ resource "squaredup_workspace_alert" "example" {
   alerting_rules = [
     {
       channel       = squaredup_alerting_channel.slack_api_alert.id
-      preview_image = true
-      condition = {
-        tiles_id = [local.lambda_errors_tile_id]
-      }
+      //"workspace_state","all_monitors","selected_monitors"
+      notify_on     = "workspace_state"
     },
     {
-      channel       = squaredup_alerting_channel.slack_api_alert.id
+      channel      = squaredup_alerting_channel.slack_api_alert.id
       preview_image = true
-      condition = {
-        workspace_state = true
-      }
+      notify_on     = "all_monitors"
     },
     {
       channel       = squaredup_alerting_channel.slack_api_alert.id
       preview_image = false
-      condition = {
-        include_all_tiles = true
-      }
+      notify_on     = "selected_monitors"
+      selected_monitors = [
+        {
+          dashboard_id = squaredup_dashboard.sample_dashboard.id
+          tiles_id     = [local.lambda_errors_tile_id]
+        }
+      ]
     }
   ]
 }

@@ -2,14 +2,16 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -35,15 +37,15 @@ type workspaceAlerts struct {
 }
 
 type workspaceAlert struct {
-	Channel      types.String   `tfsdk:"channel"`
-	PreviewImage types.Bool     `tfsdk:"preview_image"`
-	Condition    alertCondition `tfsdk:"condition"`
+	Channel          types.String       `tfsdk:"channel"`
+	PreviewImage     types.Bool         `tfsdk:"preview_image"`
+	NotifyOn         types.String       `tfsdk:"notify_on"`
+	SelectedMonitors []SelectedMonitors `tfsdk:"selected_monitors"`
 }
 
-type alertCondition struct {
-	WorkspaceState  types.Bool     `tfsdk:"workspace_state"`
-	IncludeAllTiles types.Bool     `tfsdk:"include_all_tiles"`
-	TilesID         []types.String `tfsdk:"tiles_id"`
+type SelectedMonitors struct {
+	DashboardID types.String   `tfsdk:"dashboard_id"`
+	TilesID     []types.String `tfsdk:"tiles_id"`
 }
 
 func (r *workspaceAlertResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -76,28 +78,29 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 							Optional:    true,
 							Computed:    true,
 						},
-						"condition": schema.SingleNestedAttribute{
-							Description: "The condition for the alert",
+						"notify_on": schema.StringAttribute{
+							Description: "Condition to trigger the alert. Must be one of: 'workspace_state', 'all_monitors', or 'selected_monitors'",
 							Required:    true,
-							Attributes: map[string]schema.Attribute{
-								"workspace_state": schema.BoolAttribute{
-									Description: "Whether to include the workspace state in the alert",
-									Default:     booldefault.StaticBool(false),
-									Optional:    true,
-									Computed:    true,
-								},
-								"include_all_tiles": schema.BoolAttribute{
-									Description: "Whether to include all tiles in the alert",
-									Default:     booldefault.StaticBool(false),
-									Optional:    true,
-									Computed:    true,
-								},
-								"tiles_id": schema.ListAttribute{
-									Description: "The IDs of the tiles to include in the alert",
-									Optional:    true,
-									Computed:    true,
-									Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
-									ElementType: types.StringType,
+							Validators: []validator.String{stringvalidator.OneOf(
+								"workspace_state",
+								"all_monitors",
+								"selected_monitors",
+							)},
+						},
+						"selected_monitors": schema.ListNestedAttribute{
+							Description: "The monitors to trigger the alert on. Required if notify_on is 'selected_monitors'",
+							Optional:    true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"dashboard_id": schema.StringAttribute{
+										Description: "The ID of the dashboard where the monitor is configured",
+										Required:    true,
+									},
+									"tiles_id": schema.ListAttribute{
+										Description: "The ID of the tiles to trigger the alert on",
+										Required:    true,
+										ElementType: types.StringType,
+									},
 								},
 							},
 						},
@@ -134,6 +137,18 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
+	payload, err, warning := constructPayload(plan)
+	if err != nil {
+		resp.Diagnostics.AddError("Error constructing JSON", err.Error())
+		return
+	}
+
+	if warning != "" {
+		resp.Diagnostics.AddWarning("Unsupported Attribute", warning)
+	}
+
+	fmt.Printf("JSON: %s\n", payload)
+
 }
 
 func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -150,4 +165,64 @@ func (r *workspaceAlertResource) Delete(ctx context.Context, req resource.Delete
 
 func (r *workspaceAlertResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("workspace_id"), req, resp)
+}
+
+func constructPayload(plan workspaceAlerts) (string, error, string) {
+	var result WorkspaceAlertsData
+	var warning string
+
+	for _, rule := range plan.AlertingRules {
+		var channels []AlertChannel
+
+		channel := AlertChannel{
+			ID:                  rule.Channel.ValueString(),
+			IncludePreviewImage: rule.PreviewImage.ValueBool(),
+		}
+
+		if rule.NotifyOn.ValueString() == "workspace_state" && rule.PreviewImage.ValueBool() == true {
+			channel.IncludePreviewImage = false
+			warning = "Preview images are not supported when using 'workspace_state' for 'notify_on'. The 'preview_image' attribute will be ignored."
+		}
+
+		channels = append(channels, channel)
+
+		var conditions AlertConditions
+		conditions.Monitors.IncludeAllTiles = rule.NotifyOn.ValueString() == "all_monitors"
+		conditions.Monitors.DashboardRollupHealth = false
+		conditions.Monitors.RollupHealth = false
+
+		if rule.NotifyOn.ValueString() == "workspace_state" {
+			conditions.Monitors.RollupHealth = true
+		}
+
+		if rule.NotifyOn.ValueString() == "selected_monitors" {
+			conditions.Monitors.Dashboards = make(map[string]AlertDashboard)
+			for _, selectedMonitor := range rule.SelectedMonitors {
+				dashboardID := selectedMonitor.DashboardID.ValueString()
+				dashboard := AlertDashboard{
+					Tiles: make(map[string]AlertTile),
+				}
+
+				for _, tileID := range selectedMonitor.TilesID {
+					dashboard.Tiles[tileID.ValueString()] = AlertTile{
+						Include: true,
+					}
+				}
+
+				conditions.Monitors.Dashboards[dashboardID] = dashboard
+			}
+		}
+
+		result.AlertingRules = append(result.AlertingRules, WorkspaceAlertData{
+			Channels:   channels,
+			Conditions: conditions,
+		})
+	}
+
+	jsonData, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return "", err, ""
+	}
+
+	return string(jsonData), nil, warning
 }

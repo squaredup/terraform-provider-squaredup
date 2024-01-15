@@ -123,3 +123,36 @@ type AlertingChannel struct {
 	Config        map[string]interface{} `json:"config"`
 	Enabled       bool                   `json:"enabled"`
 }
+
+type WorkspaceAlertsData struct {
+	AlertingRules []WorkspaceAlertData `json:"alertingRules"`
+}
+
+type WorkspaceAlertData struct {
+	Channels   []AlertChannel  `json:"channels"`
+	Conditions AlertConditions `json:"conditions"`
+}
+
+type AlertChannel struct {
+	ID                  string `json:"id"`
+	IncludePreviewImage bool   `json:"includePreviewImage"`
+}
+
+type AlertConditions struct {
+	Monitors AlertMonitors `json:"monitors"`
+}
+
+type AlertMonitors struct {
+	IncludeAllTiles       bool                      `json:"includeAllTiles"`
+	DashboardRollupHealth bool                      `json:"dashboardRollupHealth"`
+	RollupHealth          bool                      `json:"rollupHealth"`
+	Dashboards            map[string]AlertDashboard `json:"dashboards,omitempty"`
+}
+
+type AlertDashboard struct {
+	Tiles map[string]AlertTile `json:"tiles"`
+}
+
+type AlertTile struct {
+	Include bool `json:"include"`
+}
