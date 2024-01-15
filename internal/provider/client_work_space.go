@@ -79,3 +79,22 @@ func (c *SquaredUpClient) DeleteWorkspace(workspaceId string) error {
 
 	return nil
 }
+
+func (c *SquaredUpClient) PutWorkspace(workspaceId string, workspacePayload map[string]interface{}) error {
+	rb, err := json.Marshal(workspacePayload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("PUT", c.baseURL+"/api/workspaces/"+workspaceId, strings.NewReader(string(rb)))
+	if err != nil {
+		return err
+	}
+
+	_, err = c.doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -147,7 +147,17 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 		resp.Diagnostics.AddWarning("Unsupported Attribute", warning)
 	}
 
-	fmt.Printf("JSON: %s\n", payload)
+	err = r.client.PutWorkspace(plan.WorkspaceID.ValueString(), payload)
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating workspace", err.Error())
+		return
+	}
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 }
 
@@ -167,7 +177,7 @@ func (r *workspaceAlertResource) ImportState(ctx context.Context, req resource.I
 	resource.ImportStatePassthroughID(ctx, path.Root("workspace_id"), req, resp)
 }
 
-func constructPayload(plan workspaceAlerts) (string, error, string) {
+func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, string) {
 	var result WorkspaceAlertsData
 	var warning string
 
@@ -221,8 +231,13 @@ func constructPayload(plan workspaceAlerts) (string, error, string) {
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
-		return "", err, ""
+		return nil, err, ""
 	}
 
-	return string(jsonData), nil, warning
+	var jsonDataMap map[string]interface{}
+	if err := json.Unmarshal(jsonData, &jsonDataMap); err != nil {
+		return nil, err, ""
+	}
+
+	return jsonDataMap, nil, warning
 }
