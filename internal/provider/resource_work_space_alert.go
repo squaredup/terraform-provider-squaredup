@@ -34,6 +34,7 @@ type workspaceAlertResource struct {
 type workspaceAlerts struct {
 	WorkspaceID   types.String     `tfsdk:"workspace_id"`
 	AlertingRules []workspaceAlert `tfsdk:"alerting_rules"`
+	ID            types.String     `tfsdk:"id"`
 }
 
 type workspaceAlert struct {
@@ -59,9 +60,6 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 			"workspace_id": schema.StringAttribute{
 				Description: "The ID of the workspace to create the alert in",
 				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"alerting_rules": schema.ListNestedAttribute{
 				Description: "The alerting rules to create",
@@ -105,6 +103,13 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 							},
 						},
 					},
+				},
+			},
+			"id": schema.StringAttribute{
+				Description: "The ID of the workspace",
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 		},
@@ -153,6 +158,8 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
+	plan.ID = types.StringValue(plan.WorkspaceID.ValueString())
+
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -169,7 +176,7 @@ func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	readWorkspace, err := r.client.GetWorkspace(state.WorkspaceID.ValueString())
+	readWorkspace, err := r.client.GetWorkspace(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading workspace", err.Error())
 		return
@@ -207,8 +214,9 @@ func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	updatedState := workspaceAlerts{
-		WorkspaceID:   state.WorkspaceID,
+		WorkspaceID:   state.ID,
 		AlertingRules: alertingRules,
+		ID:            state.ID,
 	}
 
 	diags = resp.State.Set(ctx, &updatedState)
@@ -242,6 +250,8 @@ func (r *workspaceAlertResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
+	plan.ID = types.StringValue(plan.WorkspaceID.ValueString())
+
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -261,9 +271,7 @@ func (r *workspaceAlertResource) Delete(ctx context.Context, req resource.Delete
 		"alertingRules": []interface{}{},
 	}
 
-	fmt.Printf("Delete Payload: %v\n", payload)
-
-	err := r.client.PutWorkspace(state.WorkspaceID.ValueString(), payload)
+	err := r.client.PutWorkspace(state.ID.ValueString(), payload)
 	if err != nil {
 		resp.Diagnostics.AddError("Error with removing workspace alerts", err.Error())
 		return
@@ -271,7 +279,7 @@ func (r *workspaceAlertResource) Delete(ctx context.Context, req resource.Delete
 }
 
 func (r *workspaceAlertResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("workspace_id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, string) {
