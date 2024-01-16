@@ -222,6 +222,10 @@ resource "squaredup_workspace_alert" "example" {
 - `alerting_rules` (Attributes List) The alerting rules to create (see [below for nested schema](#nestedatt--alerting_rules))
 - `workspace_id` (String) The ID of the workspace to create the alert in
 
+### Read-Only
+
+- `id` (String) The ID of the workspace
+
 <a id="nestedatt--alerting_rules"></a>
 ### Nested Schema for `alerting_rules`
 
