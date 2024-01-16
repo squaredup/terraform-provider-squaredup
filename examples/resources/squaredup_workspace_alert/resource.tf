@@ -176,8 +176,8 @@ resource "squaredup_workspace_alert" "example" {
   alerting_rules = [
     {
       channel       = squaredup_alerting_channel.slack_api_alert.id
-      //"workspace_state","all_monitors","selected_monitors"
       notify_on     = "workspace_state"
+      // "workspace_state" does not support "preview_image"
     },
     {
       channel      = squaredup_alerting_channel.slack_api_alert.id

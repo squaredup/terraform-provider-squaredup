@@ -149,7 +149,7 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 
 	err = r.client.PutWorkspace(plan.WorkspaceID.ValueString(), payload)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating workspace", err.Error())
+		resp.Diagnostics.AddError("Error updating workspace alerts", err.Error())
 		return
 	}
 
@@ -162,15 +162,112 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 }
 
 func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	return
+	var state workspaceAlerts
+	diags := req.State.Get(ctx, &state)
+	if diags.HasError() {
+		resp.Diagnostics = diags
+		return
+	}
+
+	readWorkspace, err := r.client.GetWorkspace(state.WorkspaceID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading workspace", err.Error())
+		return
+	}
+
+	var alertingRules []workspaceAlert
+	for _, rule := range readWorkspace.Data.AlertingRules {
+		var selectedMonitors []SelectedMonitors
+		for dashID, dashTiles := range rule.Conditions.Monitors.Dashboards {
+			var tilesIDs []types.String
+			for tileID, tile := range dashTiles.Tiles {
+				if tile.Include {
+					tilesIDs = append(tilesIDs, types.StringValue(tileID))
+				}
+			}
+			selectedMonitors = append(selectedMonitors, SelectedMonitors{
+				DashboardID: types.StringValue(dashID),
+				TilesID:     tilesIDs,
+			})
+		}
+
+		notifyOn, err := determineNotifyOn(rule.Conditions.Monitors)
+		if err != nil {
+			resp.Diagnostics.AddError("Error determining notify_on value", err.Error())
+			return
+		}
+
+		alertingRule := workspaceAlert{
+			Channel:          types.StringValue(rule.Channels[0].ID),
+			PreviewImage:     types.BoolValue(rule.Channels[0].IncludePreviewImage),
+			NotifyOn:         types.StringValue(notifyOn),
+			SelectedMonitors: selectedMonitors,
+		}
+		alertingRules = append(alertingRules, alertingRule)
+	}
+
+	updatedState := workspaceAlerts{
+		WorkspaceID:   state.WorkspaceID,
+		AlertingRules: alertingRules,
+	}
+
+	diags = resp.State.Set(ctx, &updatedState)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (r *workspaceAlertResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	return
+	var plan workspaceAlerts
+	diags := req.Plan.Get(ctx, &plan)
+	if diags.HasError() {
+		resp.Diagnostics = diags
+		return
+	}
+
+	payload, err, warning := constructPayload(plan)
+	if err != nil {
+		resp.Diagnostics.AddError("Error constructing JSON", err.Error())
+		return
+	}
+
+	if warning != "" {
+		resp.Diagnostics.AddWarning("Unsupported Attribute", warning)
+	}
+
+	err = r.client.PutWorkspace(plan.WorkspaceID.ValueString(), payload)
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating workspace alerts", err.Error())
+		return
+	}
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (r *workspaceAlertResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	return
+	var state workspaceAlerts
+	diags := req.State.Get(ctx, &state)
+	if diags.HasError() {
+		resp.Diagnostics = diags
+		return
+	}
+
+	payload := map[string]interface{}{
+		"alertingRules": []interface{}{},
+	}
+
+	fmt.Printf("Delete Payload: %v\n", payload)
+
+	err := r.client.PutWorkspace(state.WorkspaceID.ValueString(), payload)
+	if err != nil {
+		resp.Diagnostics.AddError("Error with removing workspace alerts", err.Error())
+		return
+	}
 }
 
 func (r *workspaceAlertResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -189,7 +286,7 @@ func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, stri
 			IncludePreviewImage: rule.PreviewImage.ValueBool(),
 		}
 
-		if rule.NotifyOn.ValueString() == "workspace_state" && rule.PreviewImage.ValueBool() == true {
+		if rule.NotifyOn.ValueString() == "workspace_state" && rule.PreviewImage.ValueBool() {
 			channel.IncludePreviewImage = false
 			warning = "Preview images are not supported when using 'workspace_state' for 'notify_on'. The 'preview_image' attribute will be ignored."
 		}
@@ -240,4 +337,17 @@ func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, stri
 	}
 
 	return jsonDataMap, nil, warning
+}
+
+func determineNotifyOn(monitors AlertMonitors) (string, error) {
+	if monitors.IncludeAllTiles {
+		return "all_monitors", nil
+	} else if monitors.RollupHealth {
+		return "workspace_state", nil
+	} else if len(monitors.Dashboards) > 0 {
+		return "selected_monitors", nil
+	}
+
+	err := fmt.Errorf("Unable to determine notify_on value")
+	return "", err
 }

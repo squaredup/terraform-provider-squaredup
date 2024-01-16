@@ -52,16 +52,17 @@ type WorkspaceRead struct {
 }
 
 type WorkspaceReadData struct {
-	ID            string              `json:"id"`
-	Label         string              `json:"label"`
-	LinkedObjects string              `json:"linkedObjects"`
-	Properties    WorkspaceProperties `json:"properties"`
-	SourceType    string              `json:"sourceType"`
-	SourceName    string              `json:"sourceName"`
-	Search        string              `json:"__search"`
-	Name          string              `json:"__name"`
-	PartitionKey  string              `json:"__partitionKey"`
-	Links         WorkspaceLinks      `json:"links"`
+	ID            string               `json:"id"`
+	Label         string               `json:"label"`
+	AlertingRules []WorkspaceAlertData `json:"alertingRules,omitempty"`
+	LinkedObjects string               `json:"linkedObjects"`
+	Properties    WorkspaceProperties  `json:"properties"`
+	SourceType    string               `json:"sourceType"`
+	SourceName    string               `json:"sourceName"`
+	Search        string               `json:"__search"`
+	Name          string               `json:"__name"`
+	PartitionKey  string               `json:"__partitionKey"`
+	Links         WorkspaceLinks       `json:"links"`
 }
 
 type DataSourceDataStreams struct {
