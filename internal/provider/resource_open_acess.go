@@ -40,7 +40,7 @@ type DashboardSharing struct {
 }
 
 func (r *OpenAccessResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dashboard_sharing"
+	resp.TypeName = req.ProviderTypeName + "_dashboard_share"
 }
 
 func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
