@@ -120,6 +120,7 @@ type AlertingChannelType struct {
 type AlertingChannel struct {
 	ID            string                 `json:"id"`
 	DisplayName   string                 `json:"displayName"`
+	Description   string                 `json:"description"`
 	ChannelTypeID string                 `json:"channelTypeId"`
 	Config        map[string]interface{} `json:"config"`
 	Enabled       bool                   `json:"enabled"`

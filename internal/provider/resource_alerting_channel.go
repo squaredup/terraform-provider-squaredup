@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -31,6 +32,7 @@ type AlertingChannelResource struct {
 type squaredupAlertingChannel struct {
 	ChannelID     types.String         `tfsdk:"id"`
 	DisplayName   types.String         `tfsdk:"display_name"`
+	Description   types.String         `tfsdk:"description"`
 	ChannelTypeId types.String         `tfsdk:"channel_type_id"`
 	Config        jsontypes.Normalized `tfsdk:"config"`
 	Enabled       types.Bool           `tfsdk:"enabled"`
@@ -55,6 +57,12 @@ func (r *AlertingChannelResource) Schema(_ context.Context, _ resource.SchemaReq
 			"display_name": schema.StringAttribute{
 				Description: "The display name of the alerting channel",
 				Required:    true,
+			},
+			"description": schema.StringAttribute{
+				Description: "Description for the alerting channel",
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 			},
 			"channel_type_id": schema.StringAttribute{
 				Description: "The ID of the alerting channel type",
@@ -112,6 +120,7 @@ func (r *AlertingChannelResource) Create(ctx context.Context, req resource.Creat
 	// Generate API request body from plan
 	alertChannel := AlertingChannel{
 		DisplayName:   plan.DisplayName.ValueString(),
+		Description:   plan.Description.ValueString(),
 		ChannelTypeID: plan.ChannelTypeId.ValueString(),
 		Config:        config,
 		Enabled:       plan.Enabled.ValueBool(),
@@ -129,6 +138,7 @@ func (r *AlertingChannelResource) Create(ctx context.Context, req resource.Creat
 	state := squaredupAlertingChannel{
 		ChannelID:     types.StringValue(alertingChannel.ID),
 		DisplayName:   types.StringValue(alertingChannel.DisplayName),
+		Description:   types.StringValue(alertingChannel.Description),
 		ChannelTypeId: types.StringValue(alertingChannel.ChannelTypeID),
 		Config:        plan.Config,
 		Enabled:       types.BoolValue(alertingChannel.Enabled),
@@ -162,6 +172,7 @@ func (r *AlertingChannelResource) Read(ctx context.Context, req resource.ReadReq
 	state = squaredupAlertingChannel{
 		ChannelID:     types.StringValue(alertingChannel.ID),
 		DisplayName:   types.StringValue(alertingChannel.DisplayName),
+		Description:   types.StringValue(alertingChannel.Description),
 		ChannelTypeId: types.StringValue(alertingChannel.ChannelTypeID),
 		Config:        state.Config,
 		Enabled:       types.BoolValue(alertingChannel.Enabled),
@@ -198,6 +209,7 @@ func (r *AlertingChannelResource) Update(ctx context.Context, req resource.Updat
 	// Generate API request body from plan
 	alertChannel := AlertingChannel{
 		DisplayName:   plan.DisplayName.ValueString(),
+		Description:   plan.Description.ValueString(),
 		ChannelTypeID: plan.ChannelTypeId.ValueString(),
 		Config:        config,
 		Enabled:       plan.Enabled.ValueBool(),
@@ -224,6 +236,7 @@ func (r *AlertingChannelResource) Update(ctx context.Context, req resource.Updat
 	alertingChannel := squaredupAlertingChannel{
 		ChannelID:     types.StringValue(readAlertChannel.ID),
 		DisplayName:   types.StringValue(readAlertChannel.DisplayName),
+		Description:   types.StringValue(readAlertChannel.Description),
 		ChannelTypeId: types.StringValue(readAlertChannel.ChannelTypeID),
 		Config:        plan.Config,
 		Enabled:       types.BoolValue(readAlertChannel.Enabled),
