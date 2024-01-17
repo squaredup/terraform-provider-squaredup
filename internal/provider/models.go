@@ -107,3 +107,16 @@ type GremlinQueryResult struct {
 	TenantId     []string `json:"__tenantId"`
 	ConfigId     []string `json:"__configId"`
 }
+
+type OpenAccess struct {
+	LastUpdated string               `json:"lastUpdated,omitempty"`
+	ID          string               `json:"id,omitempty"`
+	TargetID    string               `json:"targetId"`
+	WorkspaceID string               `json:"workspaceId"`
+	Properties  OpenAccessProperties `json:"properties"`
+}
+
+type OpenAccessProperties struct {
+	Enabled               bool `json:"enabled"`
+	RequireAuthentication bool `json:"requireAuthentication"`
+}
