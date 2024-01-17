@@ -152,7 +152,7 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 		resp.Diagnostics.AddWarning("Unsupported Attribute", warning)
 	}
 
-	err = r.client.PutWorkspace(plan.WorkspaceID.ValueString(), payload)
+	err = r.client.UpdateWorkspace(plan.WorkspaceID.ValueString(), payload)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating workspace alerts", err.Error())
 		return
@@ -244,7 +244,7 @@ func (r *workspaceAlertResource) Update(ctx context.Context, req resource.Update
 		resp.Diagnostics.AddWarning("Unsupported Attribute", warning)
 	}
 
-	err = r.client.PutWorkspace(plan.WorkspaceID.ValueString(), payload)
+	err = r.client.UpdateWorkspace(plan.WorkspaceID.ValueString(), payload)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating workspace alerts", err.Error())
 		return
@@ -271,7 +271,7 @@ func (r *workspaceAlertResource) Delete(ctx context.Context, req resource.Delete
 		"alertingRules": []interface{}{},
 	}
 
-	err := r.client.PutWorkspace(state.ID.ValueString(), payload)
+	err := r.client.UpdateWorkspace(state.ID.ValueString(), payload)
 	if err != nil {
 		resp.Diagnostics.AddError("Error with removing workspace alerts", err.Error())
 		return
