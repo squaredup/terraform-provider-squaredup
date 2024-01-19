@@ -66,7 +66,7 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 
 ### Required
 
-- `dashboard_id` (String) The ID of the dashboard
+- `dashboard_id` (String) The ID of the dashboard to share
 - `require_authentication` (Boolean) If false, the dashboard will be accessible to anyone with the link
 - `workspace_id` (String) The ID of the workspace where the dashboard is located
 

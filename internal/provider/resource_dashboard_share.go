@@ -55,7 +55,7 @@ func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"dashboard_id": schema.StringAttribute{
-				Description: "The ID of the dashboard",
+				Description: "The ID of the dashboard to share",
 				Required:    true,
 			},
 			"workspace_id": schema.StringAttribute{
