@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func (c *SquaredUpClient) CreateOpenAccess(openAccess OpenAccess) (*OpenAccess, error) {
-	rb, err := json.Marshal(openAccess)
+func (c *SquaredUpClient) CreateSharedDashboard(dashboardShare DashboardShare) (*DashboardShare, error) {
+	rb, err := json.Marshal(dashboardShare)
 	if err != nil {
 		return nil, err
 	}
@@ -22,17 +22,17 @@ func (c *SquaredUpClient) CreateOpenAccess(openAccess OpenAccess) (*OpenAccess, 
 		return nil, err
 	}
 
-	newOpenAccess := OpenAccess{}
-	err = json.Unmarshal(body, &newOpenAccess)
+	sharedDashboard := DashboardShare{}
+	err = json.Unmarshal(body, &sharedDashboard)
 	if err != nil {
 		return nil, err
 	}
 
-	return &newOpenAccess, nil
+	return &sharedDashboard, nil
 }
 
-func (c *SquaredUpClient) GetOpenAccess(openAcessId string) (*OpenAccess, error) {
-	req, err := http.NewRequest("GET", c.baseURL+"/api/openaccess/shares/"+openAcessId, nil)
+func (c *SquaredUpClient) GetSharedDashboard(sharedDashboardId string) (*DashboardShare, error) {
+	req, err := http.NewRequest("GET", c.baseURL+"/api/openaccess/shares/"+sharedDashboardId, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42,22 +42,22 @@ func (c *SquaredUpClient) GetOpenAccess(openAcessId string) (*OpenAccess, error)
 		return nil, err
 	}
 
-	openAccess := OpenAccess{}
-	err = json.Unmarshal(body, &openAccess)
+	sharedDashboard := DashboardShare{}
+	err = json.Unmarshal(body, &sharedDashboard)
 	if err != nil {
 		return nil, err
 	}
 
-	return &openAccess, nil
+	return &sharedDashboard, nil
 }
 
-func (c *SquaredUpClient) UpdateOpenAccess(openAcessId string, openAccess OpenAccess) error {
-	rb, err := json.Marshal(openAccess)
+func (c *SquaredUpClient) UpdateSharedDashboard(sharedDashboardId string, dashboardShare DashboardShare) error {
+	rb, err := json.Marshal(dashboardShare)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", c.baseURL+"/api/openaccess/shares/"+openAcessId, strings.NewReader(string(rb)))
+	req, err := http.NewRequest("PUT", c.baseURL+"/api/openaccess/shares/"+sharedDashboardId, strings.NewReader(string(rb)))
 	if err != nil {
 		return err
 	}
@@ -70,8 +70,8 @@ func (c *SquaredUpClient) UpdateOpenAccess(openAcessId string, openAccess OpenAc
 	return nil
 }
 
-func (c *SquaredUpClient) DeleteOpenAccess(openAcessId string) error {
-	req, err := http.NewRequest("DELETE", c.baseURL+"/api/openaccess/shares/"+openAcessId, nil)
+func (c *SquaredUpClient) DeleteSharedDashboard(sharedDashboardId string) error {
+	req, err := http.NewRequest("DELETE", c.baseURL+"/api/openaccess/shares/"+sharedDashboardId, nil)
 	if err != nil {
 		return err
 	}

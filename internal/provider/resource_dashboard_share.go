@@ -16,34 +16,34 @@ import (
 )
 
 var (
-	_ resource.Resource                = &OpenAccessResource{}
-	_ resource.ResourceWithConfigure   = &OpenAccessResource{}
-	_ resource.ResourceWithImportState = &OpenAccessResource{}
+	_ resource.Resource                = &DashboardShareResource{}
+	_ resource.ResourceWithConfigure   = &DashboardShareResource{}
+	_ resource.ResourceWithImportState = &DashboardShareResource{}
 )
 
-func SquaredUpOpenAccessResource() resource.Resource {
-	return &OpenAccessResource{}
+func SquaredUpDashboardShareResource() resource.Resource {
+	return &DashboardShareResource{}
 }
 
-type OpenAccessResource struct {
+type DashboardShareResource struct {
 	client *SquaredUpClient
 }
 
 type DashboardSharing struct {
-	OpenAccessID          types.String `tfsdk:"id"`
+	DashboardShareID      types.String `tfsdk:"id"`
 	DashboardID           types.String `tfsdk:"dashboard_id"`
 	WorkspaceID           types.String `tfsdk:"workspace_id"`
 	RequireAuthentication types.Bool   `tfsdk:"require_authentication"`
 	EnableLink            types.Bool   `tfsdk:"enabled"`
-	OpenAccessLink        types.String `tfsdk:"dashboard_share_link"`
+	SharedDashboardLink   types.String `tfsdk:"dashboard_share_link"`
 	LastUpdated           types.String `tfsdk:"last_updated"`
 }
 
-func (r *OpenAccessResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DashboardShareResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dashboard_share"
 }
 
-func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DashboardShareResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Enable Sharing for a dashboard",
 		Attributes: map[string]schema.Attribute{
@@ -84,7 +84,7 @@ func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest,
 	}
 }
 
-func (r *OpenAccessResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DashboardShareResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -102,23 +102,23 @@ func (r *OpenAccessResource) Configure(_ context.Context, req resource.Configure
 	r.client = client
 }
 
-func (r *OpenAccessResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *DashboardShareResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan DashboardSharing
 	diags := req.Plan.Get(ctx, &plan)
 	if diags.HasError() {
 		return
 	}
 
-	OpenAccessPayload := OpenAccess{
+	dashboardSharePayload := DashboardShare{
 		TargetID:    plan.DashboardID.ValueString(),
 		WorkspaceID: plan.WorkspaceID.ValueString(),
-		Properties: OpenAccessProperties{
+		Properties: DashboardShareProperties{
 			Enabled:               plan.EnableLink.ValueBool(),
 			RequireAuthentication: plan.RequireAuthentication.ValueBool(),
 		},
 	}
 
-	openAccess, err := r.client.CreateOpenAccess(OpenAccessPayload)
+	sharedDashboard, err := r.client.CreateSharedDashboard(dashboardSharePayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to share dashboard",
@@ -129,12 +129,12 @@ func (r *OpenAccessResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	state := DashboardSharing{
-		OpenAccessID:          types.StringValue(openAccess.ID),
-		DashboardID:           types.StringValue(openAccess.TargetID),
-		WorkspaceID:           types.StringValue(openAccess.WorkspaceID),
-		RequireAuthentication: types.BoolValue(openAccess.Properties.RequireAuthentication),
-		EnableLink:            types.BoolValue(openAccess.Properties.Enabled),
-		OpenAccessLink:        types.StringValue(generateOpenAccessURL(openAccess.ID)),
+		DashboardShareID:      types.StringValue(sharedDashboard.ID),
+		DashboardID:           types.StringValue(sharedDashboard.TargetID),
+		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
+		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
+		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
+		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 		LastUpdated:           types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
@@ -145,14 +145,14 @@ func (r *OpenAccessResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func (r *OpenAccessResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *DashboardShareResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state DashboardSharing
 	diags := req.State.Get(ctx, &state)
 	if diags.HasError() {
 		return
 	}
 
-	openAccess, err := r.client.GetOpenAccess(state.OpenAccessID.ValueString())
+	sharedDashboard, err := r.client.GetSharedDashboard(state.DashboardShareID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read shared dashboard",
@@ -163,12 +163,12 @@ func (r *OpenAccessResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	state = DashboardSharing{
-		OpenAccessID:          types.StringValue(openAccess.ID),
-		DashboardID:           types.StringValue(openAccess.TargetID),
-		WorkspaceID:           types.StringValue(openAccess.WorkspaceID),
-		RequireAuthentication: types.BoolValue(openAccess.Properties.RequireAuthentication),
-		EnableLink:            types.BoolValue(openAccess.Properties.Enabled),
-		OpenAccessLink:        types.StringValue(generateOpenAccessURL(openAccess.ID)),
+		DashboardShareID:      types.StringValue(sharedDashboard.ID),
+		DashboardID:           types.StringValue(sharedDashboard.TargetID),
+		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
+		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
+		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
+		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 	}
 
 	diags = resp.State.Set(ctx, &state)
@@ -178,23 +178,23 @@ func (r *OpenAccessResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *DashboardShareResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan DashboardSharing
 	diags := req.Plan.Get(ctx, &plan)
 	if diags.HasError() {
 		return
 	}
 
-	OpenAccessPayload := OpenAccess{
+	dashboardSharePayload := DashboardShare{
 		TargetID:    plan.DashboardID.ValueString(),
 		WorkspaceID: plan.WorkspaceID.ValueString(),
-		Properties: OpenAccessProperties{
+		Properties: DashboardShareProperties{
 			Enabled:               plan.EnableLink.ValueBool(),
 			RequireAuthentication: plan.RequireAuthentication.ValueBool(),
 		},
 	}
 
-	err := r.client.UpdateOpenAccess(plan.OpenAccessID.ValueString(), OpenAccessPayload)
+	err := r.client.UpdateSharedDashboard(plan.DashboardShareID.ValueString(), dashboardSharePayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to update shared dashboard",
@@ -204,7 +204,7 @@ func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	readOpenAccess, err := r.client.GetOpenAccess(plan.OpenAccessID.ValueString())
+	sharedDashboard, err := r.client.GetSharedDashboard(plan.DashboardShareID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to read shared dashboard",
@@ -215,12 +215,12 @@ func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	state := DashboardSharing{
-		OpenAccessID:          types.StringValue(readOpenAccess.ID),
-		DashboardID:           types.StringValue(readOpenAccess.TargetID),
-		WorkspaceID:           types.StringValue(readOpenAccess.WorkspaceID),
-		RequireAuthentication: types.BoolValue(readOpenAccess.Properties.RequireAuthentication),
-		EnableLink:            types.BoolValue(readOpenAccess.Properties.Enabled),
-		OpenAccessLink:        types.StringValue(generateOpenAccessURL(readOpenAccess.ID)),
+		DashboardShareID:      types.StringValue(sharedDashboard.ID),
+		DashboardID:           types.StringValue(sharedDashboard.TargetID),
+		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
+		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
+		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
+		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 		LastUpdated:           types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
@@ -231,7 +231,7 @@ func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 }
 
-func (r *OpenAccessResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *DashboardShareResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state DashboardSharing
 	diags := req.State.Get(ctx, &state)
 	if diags.HasError() {
@@ -239,7 +239,7 @@ func (r *OpenAccessResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	err := r.client.DeleteOpenAccess(state.OpenAccessID.ValueString())
+	err := r.client.DeleteSharedDashboard(state.DashboardShareID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to delete shared dashboard",
@@ -250,10 +250,10 @@ func (r *OpenAccessResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 }
 
-func (r *OpenAccessResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DashboardShareResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func generateOpenAccessURL(id string) string {
+func generateSharedDashboardURL(id string) string {
 	return "https://app.squaredup.com/openaccess/" + strings.Split(id, "-")[1]
 }
