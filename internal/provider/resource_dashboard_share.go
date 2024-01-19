@@ -45,7 +45,7 @@ func (r *OpenAccessResource) Metadata(_ context.Context, req resource.MetadataRe
 
 func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Enable Open Access for a dashboard",
+		Description: "Enable Sharing for a dashboard",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The ID of the Shared dashboard",
@@ -73,11 +73,11 @@ func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Default:     booldefault.StaticBool(true),
 			},
 			"dashboard_share_link": schema.StringAttribute{
-				Description: "The Open Access Link for the dashboard",
+				Description: "Shareable link for the dashboard",
 				Computed:    true,
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last time the Open Access was updated",
+				Description: "The last time the Dashboard Share was updated",
 				Computed:    true,
 			},
 		},

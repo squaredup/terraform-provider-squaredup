@@ -3,12 +3,12 @@
 page_title: "squaredup_dashboard_share Resource - terraform-provider-squaredup"
 subcategory: ""
 description: |-
-  Enable Open Access for a dashboard
+  Enable Sharing for a dashboard
 ---
 
 # squaredup_dashboard_share (Resource)
 
-Enable Open Access for a dashboard
+Enable Sharing for a dashboard
 
 ## Example Usage
 
@@ -76,9 +76,9 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 
 ### Read-Only
 
-- `dashboard_share_link` (String) The Open Access Link for the dashboard
+- `dashboard_share_link` (String) Shareable link for the dashboard
 - `id` (String) The ID of the Shared dashboard
-- `last_updated` (String) The last time the Open Access was updated
+- `last_updated` (String) The last time the Dashboard Share was updated
 
 ## Import
 
