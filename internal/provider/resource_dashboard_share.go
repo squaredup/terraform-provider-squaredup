@@ -45,10 +45,10 @@ func (r *DashboardShareResource) Metadata(_ context.Context, req resource.Metada
 
 func (r *DashboardShareResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Enable Sharing for a dashboard",
+		Description: "Enable sharing for a dashboard",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of the Shared dashboard",
+				Description: "The ID of the dashboard share",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
