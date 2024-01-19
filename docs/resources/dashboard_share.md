@@ -3,12 +3,12 @@
 page_title: "squaredup_dashboard_share Resource - terraform-provider-squaredup"
 subcategory: ""
 description: |-
-  Enable Sharing for a dashboard
+  Enable sharing for a dashboard
 ---
 
 # squaredup_dashboard_share (Resource)
 
-Enable Sharing for a dashboard
+Enable sharing for a dashboard
 
 ## Example Usage
 
@@ -77,7 +77,7 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 ### Read-Only
 
 - `dashboard_share_link` (String) Shareable link for the dashboard
-- `id` (String) The ID of the Shared dashboard
+- `id` (String) The ID of the dashboard share
 - `last_updated` (String) The last time the Dashboard Share was updated
 
 ## Import
@@ -85,6 +85,6 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 Import is supported using the following syntax:
 
 ```shell
-# Shared Dashboard can be imported using the OA ID.
+# Dashboard share can be imported using the OA ID.
 terraform import squaredup_dashboard.example openacc-123
 ```
