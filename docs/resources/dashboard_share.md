@@ -57,7 +57,7 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
   dashboard_id           = squaredup_dashboard.sample_dashboard.id
   workspace_id           = squaredup_workspace.application_workspace.id
   require_authentication = true
-  enable_link            = true
+  enabled                = true
 }
 ```
 
@@ -72,13 +72,13 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 
 ### Optional
 
-- `enable_link` (Boolean) If false, the dashboard will not be accessible via Open Access Link
+- `enabled` (Boolean) If false, sharing of the dashboard is disabled
 
 ### Read-Only
 
-- `id` (String) The ID of the Open Access
+- `dashboard_share_link` (String) The Open Access Link for the dashboard
+- `id` (String) The ID of the Shared dashboard
 - `last_updated` (String) The last time the Open Access was updated
-- `open_access_link` (String) The Open Access Link for the dashboard
 
 ## Import
 

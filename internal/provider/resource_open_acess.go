@@ -34,8 +34,8 @@ type DashboardSharing struct {
 	DashboardID           types.String `tfsdk:"dashboard_id"`
 	WorkspaceID           types.String `tfsdk:"workspace_id"`
 	RequireAuthentication types.Bool   `tfsdk:"require_authentication"`
-	EnableLink            types.Bool   `tfsdk:"enable_link"`
-	OpenAccessLink        types.String `tfsdk:"open_access_link"`
+	EnableLink            types.Bool   `tfsdk:"enabled"`
+	OpenAccessLink        types.String `tfsdk:"dashboard_share_link"`
 	LastUpdated           types.String `tfsdk:"last_updated"`
 }
 
@@ -48,7 +48,7 @@ func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest,
 		Description: "Enable Open Access for a dashboard",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of the Open Access",
+				Description: "The ID of the Shared dashboard",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -66,13 +66,13 @@ func (r *OpenAccessResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "If false, the dashboard will be accessible to anyone with the link",
 				Required:    true,
 			},
-			"enable_link": schema.BoolAttribute{
-				Description: "If false, the dashboard will not be accessible via Open Access Link",
+			"enabled": schema.BoolAttribute{
+				Description: "If false, sharing of the dashboard is disabled",
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
 			},
-			"open_access_link": schema.StringAttribute{
+			"dashboard_share_link": schema.StringAttribute{
 				Description: "The Open Access Link for the dashboard",
 				Computed:    true,
 			},
@@ -121,8 +121,8 @@ func (r *OpenAccessResource) Create(ctx context.Context, req resource.CreateRequ
 	openAccess, err := r.client.CreateOpenAccess(OpenAccessPayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to enable Open Access",
-			fmt.Sprintf("Unable to enable Open Access: %s", err.Error()),
+			"Unable to share dashboard",
+			fmt.Sprintf("Unable to share dashboard: %s", err.Error()),
 		)
 
 		return
@@ -155,8 +155,8 @@ func (r *OpenAccessResource) Read(ctx context.Context, req resource.ReadRequest,
 	openAccess, err := r.client.GetOpenAccess(state.OpenAccessID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to read Open Access",
-			fmt.Sprintf("Unable to read Open Access: %s", err.Error()),
+			"Unable to read shared dashboard",
+			fmt.Sprintf("Unable to read shared dashboard: %s", err.Error()),
 		)
 
 		return
@@ -197,8 +197,8 @@ func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequ
 	err := r.client.UpdateOpenAccess(plan.OpenAccessID.ValueString(), OpenAccessPayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to update Open Access",
-			fmt.Sprintf("Unable to update Open Access: %s", err.Error()),
+			"Unable to update shared dashboard",
+			fmt.Sprintf("Unable to update shared dashboard: %s", err.Error()),
 		)
 
 		return
@@ -207,8 +207,8 @@ func (r *OpenAccessResource) Update(ctx context.Context, req resource.UpdateRequ
 	readOpenAccess, err := r.client.GetOpenAccess(plan.OpenAccessID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to read Open Access",
-			fmt.Sprintf("Unable to read Open Access: %s", err.Error()),
+			"Unable to read shared dashboard",
+			fmt.Sprintf("Unable to read shared dashboard: %s", err.Error()),
 		)
 
 		return
@@ -242,8 +242,8 @@ func (r *OpenAccessResource) Delete(ctx context.Context, req resource.DeleteRequ
 	err := r.client.DeleteOpenAccess(state.OpenAccessID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to delete Open Access",
-			fmt.Sprintf("Unable to delete Open Access: %s", err.Error()),
+			"Unable to delete shared dashboard",
+			fmt.Sprintf("Unable to delete shared dashboard: %s", err.Error()),
 		)
 
 		return

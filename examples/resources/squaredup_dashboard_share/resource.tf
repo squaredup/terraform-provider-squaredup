@@ -42,5 +42,5 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
   dashboard_id           = squaredup_dashboard.sample_dashboard.id
   workspace_id           = squaredup_workspace.application_workspace.id
   require_authentication = true
-  enable_link            = true
+  enabled                = true
 }

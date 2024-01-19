@@ -57,14 +57,14 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 	dashboard_id           = squaredup_dashboard.sample_dashboard.id
 	workspace_id           = squaredup_workspace.application_workspace.id
 	require_authentication = true
-	enable_link            = true
+	enabled            = true
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "require_authentication", "true"),
-					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "enable_link", "true"),
+					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "enabled", "true"),
 					resource.TestCheckResourceAttrSet("squaredup_dashboard_share.sample_dashboard_share", "id"),
-					resource.TestCheckResourceAttrSet("squaredup_dashboard_share.sample_dashboard_share", "open_access_link"),
+					resource.TestCheckResourceAttrSet("squaredup_dashboard_share.sample_dashboard_share", "dashboard_share_link"),
 				),
 			},
 			// Import Test
@@ -122,12 +122,12 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 dashboard_id           = squaredup_dashboard.sample_dashboard.id
 workspace_id           = squaredup_workspace.application_workspace.id
 require_authentication = false
-enable_link            = false
+enabled            = false
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "require_authentication", "false"),
-					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "enable_link", "false"),
+					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "enabled", "false"),
 				),
 			},
 		},
