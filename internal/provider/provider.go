@@ -151,6 +151,7 @@ func (p *squaredupProvider) DataSources(_ context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		SquaredupDataSourcesDataSource,
 		SquaredUpDataStreams,
+		SquaredUpAlertingChannelTypes,
 		SquaredUpNodes,
 	}
 }
@@ -161,5 +162,7 @@ func (p *squaredupProvider) Resources(_ context.Context) []func() resource.Resou
 		SquaredupWorkspaceResource,
 		SquaredUpDashboardResource,
 		SquaredUpDashboardShareResource,
+		SquaredUpAlertingChannelResource,
+		SquaredupWorkspaceAlertResource,
 	}
 }

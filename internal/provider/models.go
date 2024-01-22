@@ -52,16 +52,17 @@ type WorkspaceRead struct {
 }
 
 type WorkspaceReadData struct {
-	ID            string              `json:"id"`
-	Label         string              `json:"label"`
-	LinkedObjects string              `json:"linkedObjects"`
-	Properties    WorkspaceProperties `json:"properties"`
-	SourceType    string              `json:"sourceType"`
-	SourceName    string              `json:"sourceName"`
-	Search        string              `json:"__search"`
-	Name          string              `json:"__name"`
-	PartitionKey  string              `json:"__partitionKey"`
-	Links         WorkspaceLinks      `json:"links"`
+	ID            string               `json:"id"`
+	Label         string               `json:"label"`
+	AlertingRules []WorkspaceAlertData `json:"alertingRules,omitempty"`
+	LinkedObjects string               `json:"linkedObjects"`
+	Properties    WorkspaceProperties  `json:"properties"`
+	SourceType    string               `json:"sourceType"`
+	SourceName    string               `json:"sourceName"`
+	Search        string               `json:"__search"`
+	Name          string               `json:"__name"`
+	PartitionKey  string               `json:"__partitionKey"`
+	Links         WorkspaceLinks       `json:"links"`
 }
 
 type DataSourceDataStreams struct {
@@ -119,4 +120,54 @@ type DashboardShare struct {
 type DashboardShareProperties struct {
 	Enabled               bool `json:"enabled"`
 	RequireAuthentication bool `json:"requireAuthentication"`
+}
+
+type AlertingChannelType struct {
+	ChannelID             string `json:"id"`
+	DisplayName           string `json:"displayName"`
+	Protocol              string `json:"protocol"`
+	ImagePreviewSupported bool   `json:"imagePreviewSupported"`
+	Description           string `json:"description"`
+}
+
+type AlertingChannel struct {
+	ID            string                 `json:"id"`
+	DisplayName   string                 `json:"displayName"`
+	Description   string                 `json:"description"`
+	ChannelTypeID string                 `json:"channelTypeId"`
+	Config        map[string]interface{} `json:"config"`
+	Enabled       bool                   `json:"enabled"`
+}
+
+type WorkspaceAlertsData struct {
+	AlertingRules []WorkspaceAlertData `json:"alertingRules"`
+}
+
+type WorkspaceAlertData struct {
+	Channels   []AlertChannel  `json:"channels"`
+	Conditions AlertConditions `json:"conditions"`
+}
+
+type AlertChannel struct {
+	ID                  string `json:"id"`
+	IncludePreviewImage bool   `json:"includePreviewImage"`
+}
+
+type AlertConditions struct {
+	Monitors AlertMonitors `json:"monitors"`
+}
+
+type AlertMonitors struct {
+	IncludeAllTiles       bool                      `json:"includeAllTiles"`
+	DashboardRollupHealth bool                      `json:"dashboardRollupHealth"`
+	RollupHealth          bool                      `json:"rollupHealth"`
+	Dashboards            map[string]AlertDashboard `json:"dashboards,omitempty"`
+}
+
+type AlertDashboard struct {
+	Tiles map[string]AlertTile `json:"tiles"`
+}
+
+type AlertTile struct {
+	Include bool `json:"include"`
 }
