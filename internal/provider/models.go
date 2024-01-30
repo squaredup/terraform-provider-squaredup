@@ -171,3 +171,15 @@ type AlertDashboard struct {
 type AlertTile struct {
 	Include bool `json:"include"`
 }
+
+type Script struct {
+	DisplayName string       `json:"displayName"`
+	ScriptType  string       `json:"scriptType,omitempty"`
+	SubType     string       `json:"subType,omitempty"`
+	Config      ScriptConfig `json:"config"`
+	ID          string       `json:"id,omitempty"`
+}
+
+type ScriptConfig struct {
+	Src string `json:"src"`
+}
