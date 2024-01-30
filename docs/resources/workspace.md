@@ -28,13 +28,13 @@ resource "squaredup_workspace" "application_workspace" {
 }
 
 resource "squaredup_workspace" "devops_workspace" {
-  display_name        = "DevOps Team"
-  description         = "Workspace with Dashboards for DevOps Team"
-  type                = "application"
-  tags                = ["terraform", "auto-created"]
-  open_access_enabled = true
-  workspaces_links    = [squaredup_workspace.application_workspace.id]
-  datasources_links   = [squaredup_datasource.sample_data_source.id]
+  display_name            = "DevOps Team"
+  description             = "Workspace with Dashboards for DevOps Team"
+  type                    = "application"
+  tags                    = ["terraform", "auto-created"]
+  allow_dashboard_sharing = true
+  workspaces_links        = [squaredup_workspace.application_workspace.id]
+  datasources_links       = [squaredup_datasource.sample_data_source.id]
 }
 ```
 
@@ -47,9 +47,9 @@ resource "squaredup_workspace" "devops_workspace" {
 
 ### Optional
 
+- `allow_dashboard_sharing` (Boolean) Allow dashboards in this workspace to be shared with anyone
 - `datasources_links` (List of String) Links to plugins
 - `description` (String) The description of the workspace
-- `open_access_enabled` (Boolean) Whether open access is enabled for the workspace
 - `tags` (List of String) The tags of the workspace
 - `type` (String) Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.
 - `workspaces_links` (List of String) Links to workspaces

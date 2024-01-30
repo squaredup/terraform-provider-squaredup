@@ -36,10 +36,10 @@ type WorkspaceLinks struct {
 }
 
 type WorkspaceProperties struct {
-	OpenAccessEnabled bool     `json:"openAccessEnabled"`
-	Tags              []string `json:"tags"`
-	Description       string   `json:"description"`
-	Type              string   `json:"type,omitempty"`
+	DashboardSharingEnabled bool     `json:"openAccessEnabled"`
+	Tags                    []string `json:"tags"`
+	Description             string   `json:"description"`
+	Type                    string   `json:"type,omitempty"`
 }
 
 type WorkspaceRead struct {

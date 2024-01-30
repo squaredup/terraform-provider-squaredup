@@ -34,15 +34,15 @@ type workspaceResource struct {
 }
 
 type workspace struct {
-	DisplayName       types.String   `tfsdk:"display_name"`
-	Description       types.String   `tfsdk:"description"`
-	Type              types.String   `tfsdk:"type"`
-	Tags              []types.String `tfsdk:"tags"`
-	DataSourcesLinks  []types.String `tfsdk:"datasources_links"`
-	WorkspacesLinks   []types.String `tfsdk:"workspaces_links"`
-	OpenAccessEnabled types.Bool     `tfsdk:"open_access_enabled"`
-	ID                types.String   `tfsdk:"id"`
-	LastUpdated       types.String   `tfsdk:"last_updated"`
+	DisplayName             types.String   `tfsdk:"display_name"`
+	Description             types.String   `tfsdk:"description"`
+	Type                    types.String   `tfsdk:"type"`
+	Tags                    []types.String `tfsdk:"tags"`
+	DataSourcesLinks        []types.String `tfsdk:"datasources_links"`
+	WorkspacesLinks         []types.String `tfsdk:"workspaces_links"`
+	DashboardSharingEnabled types.Bool     `tfsdk:"allow_dashboard_sharing"`
+	ID                      types.String   `tfsdk:"id"`
+	LastUpdated             types.String   `tfsdk:"last_updated"`
 }
 
 func (r *workspaceResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -62,7 +62,6 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Description: "The description of the workspace",
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString(""),
 			},
 			"type": schema.StringAttribute{
 				Description: "Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.",
@@ -107,8 +106,8 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				ElementType: basetypes.StringType{},
 				Default:     listdefault.StaticValue(basetypes.ListValue{}),
 			},
-			"open_access_enabled": schema.BoolAttribute{
-				Description: "Whether open access is enabled for the workspace",
+			"allow_dashboard_sharing": schema.BoolAttribute{
+				Description: "Allow dashboards in this workspace to be shared with anyone",
 				Optional:    true,
 				Computed:    true,
 			},
@@ -161,9 +160,9 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		},
 		"linkToWorkspaces": true,
 		"properties": map[string]interface{}{
-			"openAccessEnabled": plan.OpenAccessEnabled.ValueBool(),
-			"tags":              SafeStringConversion(plan.Tags),
-			"description":       plan.Description.ValueString(),
+			"DashboardSharingEnabled": plan.DashboardSharingEnabled.ValueBool(),
+			"tags":                    SafeStringConversion(plan.Tags),
+			"description":             plan.Description.ValueString(),
 		},
 	}
 
@@ -194,12 +193,12 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	workspace := workspace{
-		DisplayName:       types.StringValue(readWorkspace.DisplayName),
-		ID:                types.StringValue(readWorkspace.ID),
-		Description:       types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:              types.StringValue(readWorkspace.Data.Properties.Type),
-		OpenAccessEnabled: types.BoolValue(readWorkspace.Data.Properties.OpenAccessEnabled),
-		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
+		DisplayName:             types.StringValue(readWorkspace.DisplayName),
+		ID:                      types.StringValue(readWorkspace.ID),
+		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
+		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
+		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
+		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	if len(readWorkspace.Data.Properties.Tags) > 0 {
@@ -239,11 +238,11 @@ func (r *workspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	workspace := workspace{
-		DisplayName:       types.StringValue(readWorkspace.DisplayName),
-		ID:                types.StringValue(readWorkspace.ID),
-		Description:       types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:              types.StringValue(readWorkspace.Data.Properties.Type),
-		OpenAccessEnabled: types.BoolValue(readWorkspace.Data.Properties.OpenAccessEnabled),
+		DisplayName:             types.StringValue(readWorkspace.DisplayName),
+		ID:                      types.StringValue(readWorkspace.ID),
+		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
+		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
+		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
 	}
 
 	if len(readWorkspace.Data.Properties.Tags) > 0 {
@@ -288,9 +287,9 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		},
 		"linkToWorkspaces": true,
 		"properties": map[string]interface{}{
-			"openAccessEnabled": plan.OpenAccessEnabled.ValueBool(),
-			"tags":              SafeStringConversion(plan.Tags),
-			"description":       plan.Description.ValueString(),
+			"DashboardSharingEnabled": plan.DashboardSharingEnabled.ValueBool(),
+			"tags":                    SafeStringConversion(plan.Tags),
+			"description":             plan.Description.ValueString(),
 		},
 	}
 
@@ -319,12 +318,12 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	workspace := workspace{
-		DisplayName:       types.StringValue(readWorkspace.DisplayName),
-		ID:                types.StringValue(readWorkspace.ID),
-		Description:       types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:              types.StringValue(readWorkspace.Data.Properties.Type),
-		OpenAccessEnabled: types.BoolValue(readWorkspace.Data.Properties.OpenAccessEnabled),
-		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
+		DisplayName:             types.StringValue(readWorkspace.DisplayName),
+		ID:                      types.StringValue(readWorkspace.ID),
+		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
+		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
+		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
+		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	if len(readWorkspace.Data.Properties.Tags) > 0 {

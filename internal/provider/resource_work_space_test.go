@@ -18,7 +18,7 @@ func TestAccResourceWorkSpace(t *testing.T) {
 					description = "Workspace Used for Testing"
 					type = "application"
 					tags = ["test", "test2"]
-					open_access_enabled = true
+					allow_dashboard_sharing = true
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
