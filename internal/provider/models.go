@@ -45,14 +45,10 @@ type WorkspaceLinks struct {
 }
 
 type DataSourceDataStreams struct {
-	DisplayName         string `json:"displayName"`
-	DataSourceName      string `json:"dataSourceName"`
-	LastUpdated         string `json:"lastUpdated"`
-	ParentPluginVersion string `json:"parentPluginVersion"`
-	ParentPluginID      string `json:"parentPluginId"`
-	Type                string `json:"type"`
-	ID                  string `json:"id"`
-	Definition          struct {
+	DisplayName    string `json:"displayName"`
+	DataSourceName string `json:"dataSourceName"`
+	ID             string `json:"id"`
+	Definition     struct {
 		Name string `json:"name"`
 	} `json:"definition"`
 }

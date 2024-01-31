@@ -29,14 +29,10 @@ type squaredupDataStreams struct {
 }
 
 type squaredupDataSourceDataStreams struct {
-	DisplayName         types.String `tfsdk:"display_name"`
-	DataSourceName      types.String `tfsdk:"data_source_name"`
-	LastUpdated         types.String `tfsdk:"last_updated"`
-	ParentPluginVersion types.String `tfsdk:"parent_plugin_version"`
-	ParentPluginId      types.String `tfsdk:"parent_plugin_id"`
-	Type                types.String `tfsdk:"type"`
-	Id                  types.String `tfsdk:"id"`
-	DefinitionName      types.String `tfsdk:"definition_name"`
+	DisplayName    types.String `tfsdk:"display_name"`
+	DataSourceName types.String `tfsdk:"data_source_name"`
+	Id             types.String `tfsdk:"id"`
+	DefinitionName types.String `tfsdk:"definition_name"`
 }
 
 func (d *squaredupDataStream) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -51,14 +47,10 @@ func (d *squaredupDataStream) Schema(_ context.Context, req datasource.SchemaReq
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"display_name":          schema.StringAttribute{Computed: true},
-						"data_source_name":      schema.StringAttribute{Computed: true},
-						"last_updated":          schema.StringAttribute{Computed: true},
-						"parent_plugin_version": schema.StringAttribute{Computed: true},
-						"parent_plugin_id":      schema.StringAttribute{Computed: true},
-						"type":                  schema.StringAttribute{Computed: true},
-						"id":                    schema.StringAttribute{Computed: true},
-						"definition_name":       schema.StringAttribute{Computed: true},
+						"display_name":     schema.StringAttribute{Computed: true},
+						"data_source_name": schema.StringAttribute{Computed: true},
+						"id":               schema.StringAttribute{Computed: true},
+						"definition_name":  schema.StringAttribute{Computed: true},
 					},
 				},
 			},
@@ -93,14 +85,10 @@ func (d *squaredupDataStream) Read(ctx context.Context, req datasource.ReadReque
 
 	for _, dataStream := range dataStreams {
 		dataStreamState := squaredupDataSourceDataStreams{
-			DisplayName:         types.StringValue(dataStream.DisplayName),
-			DataSourceName:      types.StringValue(dataStream.DataSourceName),
-			DefinitionName:      types.StringValue(dataStream.Definition.Name),
-			LastUpdated:         types.StringValue(dataStream.LastUpdated),
-			ParentPluginVersion: types.StringValue(dataStream.ParentPluginVersion),
-			ParentPluginId:      types.StringValue(dataStream.ParentPluginID),
-			Type:                types.StringValue(dataStream.Type),
-			Id:                  types.StringValue(dataStream.ID),
+			DisplayName:    types.StringValue(dataStream.DisplayName),
+			DataSourceName: types.StringValue(dataStream.DataSourceName),
+			DefinitionName: types.StringValue(dataStream.Definition.Name),
+			Id:             types.StringValue(dataStream.ID),
 		}
 		state.DataStreams = append(state.DataStreams, dataStreamState)
 	}
