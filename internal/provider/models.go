@@ -26,12 +26,10 @@ type DataSource struct {
 type WorkspaceRead struct {
 	ID          string            `json:"id"`
 	DisplayName string            `json:"displayName"`
-	ConfigID    string            `json:"configId"`
 	Data        WorkspaceReadData `json:"data"`
 }
 
 type WorkspaceReadData struct {
-	ID            string               `json:"id"`
 	AlertingRules []WorkspaceAlertData `json:"alertingRules,omitempty"`
 	LinkedObjects string               `json:"linkedObjects"`
 	Properties    WorkspaceProperties  `json:"properties"`
