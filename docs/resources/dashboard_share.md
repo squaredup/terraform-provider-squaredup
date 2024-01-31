@@ -14,9 +14,9 @@ Enable sharing for a dashboard
 
 ```terraform
 resource "squaredup_workspace" "application_workspace" {
-  display_name        = "Application Team"
-  description         = "Workspace with Dashboards for Application Team"
-  open_access_enabled = true
+  display_name            = "Application Team"
+  description             = "Workspace with Dashboards for Application Team"
+  allow_dashboard_sharing = true
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {

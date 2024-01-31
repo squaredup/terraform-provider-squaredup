@@ -23,6 +23,7 @@ func (c *SquaredUpClient) CreateWorkspace(workspacePayload map[string]interface{
 	}
 
 	workspaceID := string(body)
+	workspaceID = strings.Trim(workspaceID, `"`)
 
 	return workspaceID, nil
 }

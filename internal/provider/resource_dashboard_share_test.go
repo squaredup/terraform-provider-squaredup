@@ -16,7 +16,7 @@ func TestAccResourceDashboardSharing(t *testing.T) {
 resource "squaredup_workspace" "application_workspace" {
 	display_name        = "OA Test Workspace"
 	description         = "Workspace with Dashboards for Application Team"
-	open_access_enabled = true
+	allow_dashboard_sharing = true
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
@@ -81,7 +81,7 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 resource "squaredup_workspace" "application_workspace" {
 display_name        = "OA Test Workspace"
 description         = "Workspace with Dashboards for Application Team"
-open_access_enabled = true
+allow_dashboard_sharing = true
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {

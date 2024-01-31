@@ -39,13 +39,13 @@ resource "squaredup_workspace" "application_workspace" {
 }
 
 resource "squaredup_workspace" "devops_workspace" {
-  display_name        = "DevOps Team"
-  description         = "Workspace with Dashboards for DevOps Team"
-  type                = "application"
-  tags                = ["terraform", "auto-created"]
-  open_access_enabled = true
-  workspaces_links    = [squaredup_workspace.application_workspace.id]
-  datasources_links   = [squaredup_datasource.ado_datasource.id, squaredup_datasource.sample_data_source.id]
+  display_name            = "DevOps Team"
+  description             = "Workspace with Dashboards for DevOps Team"
+  type                    = "application"
+  tags                    = ["terraform", "auto-created"]
+  allow_dashboard_sharing = true
+  workspaces_links        = [squaredup_workspace.application_workspace.id]
+  datasources_links       = [squaredup_datasource.ado_datasource.id, squaredup_datasource.sample_data_source.id]
 }
 
 data "squaredup_data_streams" "azure_devops_dataStreams" {
