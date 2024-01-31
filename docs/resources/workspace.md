@@ -3,12 +3,12 @@
 page_title: "squaredup_workspace Resource - terraform-provider-squaredup"
 subcategory: ""
 description: |-
-  Each workspace has its own dashboards, data sources, monitors and scopes.
+  Each workspace has its own dashboards, data sources, monitors and scopes
 ---
 
 # squaredup_workspace (Resource)
 
-Each workspace has its own dashboards, data sources, monitors and scopes.
+Each workspace has its own dashboards, data sources, monitors and scopes
 
 ## Example Usage
 
@@ -43,16 +43,16 @@ resource "squaredup_workspace" "devops_workspace" {
 
 ### Required
 
-- `display_name` (String) The display name of the workspace (Displayed in SquaredUp)
+- `display_name` (String) Display name for the workspace
 
 ### Optional
 
 - `allow_dashboard_sharing` (Boolean) Allow dashboards in this workspace to be shared
-- `datasources_links` (List of String) Links to datasources
-- `description` (String) The description of the workspace
-- `tags` (List of String) The tags of the workspace
+- `datasources_links` (List of String) IDs of Data Sources to link to this workspace
+- `description` (String) Description for the workspace
+- `tags` (List of String) Tags for the workspace
 - `type` (String) Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.
-- `workspaces_links` (List of String) Links to workspaces
+- `workspaces_links` (List of String) IDs of Workspaces to link to this workspace
 
 ### Read-Only
 

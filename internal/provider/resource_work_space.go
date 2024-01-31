@@ -49,15 +49,15 @@ func (r *workspaceResource) Metadata(_ context.Context, req resource.MetadataReq
 
 func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Each workspace has its own dashboards, data sources, monitors and scopes.",
+		Description: "Each workspace has its own dashboards, data sources, monitors and scopes",
 		Attributes: map[string]schema.Attribute{
 			"display_name": schema.StringAttribute{
-				Description: "The display name of the workspace (Displayed in SquaredUp)",
+				Description: "Display name for the workspace",
 				Required:    true,
 			},
 
 			"description": schema.StringAttribute{
-				Description: "The description of the workspace",
+				Description: "Description for the workspace",
 				Optional:    true,
 				Computed:    true,
 			},
@@ -84,21 +84,21 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Default: stringdefault.StaticString(""),
 			},
 			"tags": schema.ListAttribute{
-				Description: "The tags of the workspace",
+				Description: "Tags for the workspace",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
 				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"datasources_links": schema.ListAttribute{
-				Description: "Links to datasources",
+				Description: "IDs of Data Sources to link to this workspace",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
 				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"workspaces_links": schema.ListAttribute{
-				Description: "Links to workspaces",
+				Description: "IDs of Workspaces to link to this workspace",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
