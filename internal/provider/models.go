@@ -23,16 +23,19 @@ type DataSource struct {
 	AgentGroupID string `json:"agentGroupId,omitempty"`
 }
 
-type WorkspaceConfig struct {
-	DisplayName string              `json:"displayName"`
-	ID          string              `json:"id,omitempty"`
-	Links       WorkspaceLinks      `json:"links"`
-	Properties  WorkspaceProperties `json:"properties"`
+type WorkspaceRead struct {
+	ID          string            `json:"id"`
+	DisplayName string            `json:"displayName"`
+	ConfigID    string            `json:"configId"`
+	Data        WorkspaceReadData `json:"data"`
 }
 
-type WorkspaceLinks struct {
-	Plugins    []string `json:"plugins"`
-	Workspaces []string `json:"workspaces"`
+type WorkspaceReadData struct {
+	ID            string               `json:"id"`
+	AlertingRules []WorkspaceAlertData `json:"alertingRules,omitempty"`
+	LinkedObjects string               `json:"linkedObjects"`
+	Properties    WorkspaceProperties  `json:"properties"`
+	Links         WorkspaceLinks       `json:"links"`
 }
 
 type WorkspaceProperties struct {
@@ -42,27 +45,9 @@ type WorkspaceProperties struct {
 	Type                    string   `json:"type,omitempty"`
 }
 
-type WorkspaceRead struct {
-	ID          string            `json:"id"`
-	Type        string            `json:"type"`
-	DisplayName string            `json:"displayName"`
-	Tenant      string            `json:"tenant"`
-	ConfigID    string            `json:"configId"`
-	Data        WorkspaceReadData `json:"data"`
-}
-
-type WorkspaceReadData struct {
-	ID            string               `json:"id"`
-	Label         string               `json:"label"`
-	AlertingRules []WorkspaceAlertData `json:"alertingRules,omitempty"`
-	LinkedObjects string               `json:"linkedObjects"`
-	Properties    WorkspaceProperties  `json:"properties"`
-	SourceType    string               `json:"sourceType"`
-	SourceName    string               `json:"sourceName"`
-	Search        string               `json:"__search"`
-	Name          string               `json:"__name"`
-	PartitionKey  string               `json:"__partitionKey"`
-	Links         WorkspaceLinks       `json:"links"`
+type WorkspaceLinks struct {
+	Plugins    []string `json:"plugins"`
+	Workspaces []string `json:"workspaces"`
 }
 
 type DataSourceDataStreams struct {

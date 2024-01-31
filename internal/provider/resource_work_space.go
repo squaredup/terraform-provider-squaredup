@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
@@ -67,7 +65,6 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Description: "Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.",
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString(""),
 				Validators: []validator.String{stringvalidator.OneOf(
 					"service",
 					"team",
@@ -84,27 +81,28 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 					"folder",
 					"other",
 				)},
+				Default: stringdefault.StaticString(""),
 			},
 			"tags": schema.ListAttribute{
 				Description: "The tags of the workspace",
 				Optional:    true,
 				Computed:    true,
-				ElementType: basetypes.StringType{},
-				Default:     listdefault.StaticValue(basetypes.ListValue{}),
+				ElementType: types.StringType,
+				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"datasources_links": schema.ListAttribute{
-				Description: "Links to plugins",
+				Description: "Links to datasources",
 				Optional:    true,
 				Computed:    true,
-				ElementType: basetypes.StringType{},
-				Default:     listdefault.StaticValue(basetypes.ListValue{}),
+				ElementType: types.StringType,
+				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"workspaces_links": schema.ListAttribute{
 				Description: "Links to workspaces",
 				Optional:    true,
 				Computed:    true,
-				ElementType: basetypes.StringType{},
-				Default:     listdefault.StaticValue(basetypes.ListValue{}),
+				ElementType: types.StringType,
+				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"allow_dashboard_sharing": schema.BoolAttribute{
 				Description: "Allow dashboards in this workspace to be shared with anyone",
@@ -134,7 +132,7 @@ func (r *workspaceResource) Configure(ctx context.Context, req resource.Configur
 	client, ok := req.ProviderData.(*SquaredUpClient)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
+			"Unexpected Workspace Configure Type",
 			fmt.Sprintf("Expected *SquaredUpClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
@@ -152,27 +150,9 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	workspacePayload := map[string]interface{}{
-		"displayName": plan.DisplayName.ValueString(),
-		"links": map[string]interface{}{
-			"plugins":    SafeStringConversion(plan.DataSourcesLinks),
-			"workspaces": SafeStringConversion(plan.WorkspacesLinks),
-		},
-		"linkToWorkspaces": true,
-		"properties": map[string]interface{}{
-			"DashboardSharingEnabled": plan.DashboardSharingEnabled.ValueBool(),
-			"tags":                    SafeStringConversion(plan.Tags),
-			"description":             plan.Description.ValueString(),
-		},
-	}
+	workspacePayload := GenerateWorkspacePayload(plan)
 
-	if properties, ok := workspacePayload["properties"].(map[string]interface{}); ok {
-		if plan.Type.ValueString() != "" {
-			properties["type"] = plan.Type.ValueString()
-		}
-	}
-
-	newWorkspace, err := r.client.CreateWorkspace(workspacePayload)
+	workspaceID, err := r.client.CreateWorkspace(workspacePayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making API request to create workspace",
@@ -180,8 +160,6 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
-
-	workspaceID := strings.Trim(newWorkspace, `"`)
 
 	readWorkspace, err := r.client.GetWorkspace(workspaceID)
 	if err != nil {
@@ -192,26 +170,7 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	workspace := workspace{
-		DisplayName:             types.StringValue(readWorkspace.DisplayName),
-		ID:                      types.StringValue(readWorkspace.ID),
-		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
-		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
-		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
-	}
-
-	if len(readWorkspace.Data.Properties.Tags) > 0 {
-		workspace.Tags = toBasetypesStringSlice(readWorkspace.Data.Properties.Tags)
-	}
-
-	if len(readWorkspace.Data.Links.Plugins) > 0 {
-		workspace.DataSourcesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Plugins)
-	}
-
-	if len(readWorkspace.Data.Links.Workspaces) > 0 {
-		workspace.WorkspacesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Workspaces)
-	}
+	workspace := GenerateWorkspaceState(readWorkspace)
 
 	diags = resp.State.Set(ctx, workspace)
 	resp.Diagnostics.Append(diags...)
@@ -237,25 +196,7 @@ func (r *workspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	workspace := workspace{
-		DisplayName:             types.StringValue(readWorkspace.DisplayName),
-		ID:                      types.StringValue(readWorkspace.ID),
-		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
-		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
-	}
-
-	if len(readWorkspace.Data.Properties.Tags) > 0 {
-		workspace.Tags = toBasetypesStringSlice(readWorkspace.Data.Properties.Tags)
-	}
-
-	if len(readWorkspace.Data.Links.Plugins) > 0 {
-		workspace.DataSourcesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Plugins)
-	}
-
-	if len(readWorkspace.Data.Links.Workspaces) > 0 {
-		workspace.WorkspacesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Workspaces)
-	}
+	workspace := GenerateWorkspaceState(readWorkspace)
 
 	diags = resp.State.Set(ctx, workspace)
 	resp.Diagnostics.Append(diags...)
@@ -272,34 +213,9 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	var state workspace
-	diags = req.State.Get(ctx, &state)
-	if diags.HasError() {
-		resp.Diagnostics = diags
-		return
-	}
+	workspacePayload := GenerateWorkspacePayload(plan)
 
-	workspacePayload := map[string]interface{}{
-		"displayName": plan.DisplayName.ValueString(),
-		"links": map[string]interface{}{
-			"plugins":    SafeStringConversion(plan.DataSourcesLinks),
-			"workspaces": SafeStringConversion(plan.WorkspacesLinks),
-		},
-		"linkToWorkspaces": true,
-		"properties": map[string]interface{}{
-			"DashboardSharingEnabled": plan.DashboardSharingEnabled.ValueBool(),
-			"tags":                    SafeStringConversion(plan.Tags),
-			"description":             plan.Description.ValueString(),
-		},
-	}
-
-	if properties, ok := workspacePayload["properties"].(map[string]interface{}); ok {
-		if plan.Type.ValueString() != "" {
-			properties["type"] = plan.Type.ValueString()
-		}
-	}
-
-	err := r.client.UpdateWorkspace(state.ID.ValueString(), workspacePayload)
+	err := r.client.UpdateWorkspace(plan.ID.ValueString(), workspacePayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making API request to update workspace",
@@ -308,7 +224,7 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	readWorkspace, err := r.client.GetWorkspace(state.ID.ValueString())
+	readWorkspace, err := r.client.GetWorkspace(plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making API request to get workspace",
@@ -317,26 +233,7 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	workspace := workspace{
-		DisplayName:             types.StringValue(readWorkspace.DisplayName),
-		ID:                      types.StringValue(readWorkspace.ID),
-		Description:             types.StringValue(readWorkspace.Data.Properties.Description),
-		Type:                    types.StringValue(readWorkspace.Data.Properties.Type),
-		DashboardSharingEnabled: types.BoolValue(readWorkspace.Data.Properties.DashboardSharingEnabled),
-		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
-	}
-
-	if len(readWorkspace.Data.Properties.Tags) > 0 {
-		workspace.Tags = toBasetypesStringSlice(readWorkspace.Data.Properties.Tags)
-	}
-
-	if len(readWorkspace.Data.Links.Plugins) > 0 {
-		workspace.DataSourcesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Plugins)
-	}
-
-	if len(readWorkspace.Data.Links.Workspaces) > 0 {
-		workspace.WorkspacesLinks = toBasetypesStringSlice(readWorkspace.Data.Links.Workspaces)
-	}
+	workspace := GenerateWorkspaceState(readWorkspace)
 
 	diags = resp.State.Set(ctx, workspace)
 	resp.Diagnostics.Append(diags...)
@@ -367,20 +264,72 @@ func (r *workspaceResource) ImportState(ctx context.Context, req resource.Import
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func toBasetypesStringSlice(input []string) []basetypes.StringValue {
-	result := make([]basetypes.StringValue, len(input))
-	for i, s := range input {
-		result[i] = basetypes.NewStringValue(s)
+func GenerateWorkspacePayload(plan workspace) map[string]interface{} {
+	linkedPlugins := make([]string, 0, len(plan.DataSourcesLinks))
+	for _, plugin := range plan.DataSourcesLinks {
+		linkedPlugins = append(linkedPlugins, plugin.ValueString())
 	}
 
-	return result
+	linkedWorkspaces := make([]string, 0, len(plan.WorkspacesLinks))
+	for _, workspace := range plan.WorkspacesLinks {
+		linkedWorkspaces = append(linkedWorkspaces, workspace.ValueString())
+	}
+
+	tags := make([]string, 0, len(plan.Tags))
+	for _, tag := range plan.Tags {
+		tags = append(tags, tag.ValueString())
+	}
+
+	workspacePayload := map[string]interface{}{
+		"displayName": plan.DisplayName.ValueString(),
+		"links": map[string]interface{}{
+			"plugins":    linkedPlugins,
+			"workspaces": linkedWorkspaces,
+		},
+		"properties": map[string]interface{}{
+			"openAccessEnabled": plan.DashboardSharingEnabled.ValueBool(),
+			"tags":              tags,
+			"description":       plan.Description.ValueString(),
+		},
+	}
+
+	// SquaredUp API doesn't allow empty string for type so we only add it if it's not empty
+	if properties, ok := workspacePayload["properties"].(map[string]interface{}); ok {
+		if plan.Type.ValueString() != "" {
+			properties["type"] = plan.Type.ValueString()
+		}
+	}
+
+	return workspacePayload
 }
 
-func SafeStringConversion(inputList []basetypes.StringValue) []string {
-	result := make([]string, len(inputList))
-	for i, item := range inputList {
-		result[i] = item.ValueString()
+func GenerateWorkspaceState(workspaceRead *WorkspaceRead) workspace {
+	workspace := workspace{
+		DisplayName:             types.StringValue(workspaceRead.DisplayName),
+		ID:                      types.StringValue(workspaceRead.ID),
+		Description:             types.StringValue(workspaceRead.Data.Properties.Description),
+		Type:                    types.StringValue(workspaceRead.Data.Properties.Type),
+		DashboardSharingEnabled: types.BoolValue(workspaceRead.Data.Properties.DashboardSharingEnabled),
+		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
-	return result
+	if len(workspaceRead.Data.Properties.Tags) > 0 {
+		for _, tag := range workspaceRead.Data.Properties.Tags {
+			workspace.Tags = append(workspace.Tags, types.StringValue(tag))
+		}
+	}
+
+	if len(workspaceRead.Data.Links.Plugins) > 0 {
+		for _, plugin := range workspaceRead.Data.Links.Plugins {
+			workspace.DataSourcesLinks = append(workspace.DataSourcesLinks, types.StringValue(plugin))
+		}
+	}
+
+	if len(workspaceRead.Data.Links.Workspaces) > 0 {
+		for _, workspaces := range workspaceRead.Data.Links.Workspaces {
+			workspace.WorkspacesLinks = append(workspace.WorkspacesLinks, types.StringValue(workspaces))
+		}
+	}
+
+	return workspace
 }
