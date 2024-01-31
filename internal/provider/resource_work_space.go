@@ -105,7 +105,7 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Default:     listdefault.StaticValue(types.List{}),
 			},
 			"allow_dashboard_sharing": schema.BoolAttribute{
-				Description: "Allow dashboards in this workspace to be shared with anyone",
+				Description: "Allow dashboards in this workspace to be shared",
 				Optional:    true,
 				Computed:    true,
 			},
