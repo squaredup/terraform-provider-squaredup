@@ -39,7 +39,6 @@ type squaredupDashboard struct {
 	TemplateBindings  jsontypes.Normalized `tfsdk:"template_bindings"`
 	DashboardContent  jsontypes.Normalized `tfsdk:"dashboard_content"`
 	Timeframe         types.String         `tfsdk:"timeframe"`
-	Group             types.String         `tfsdk:"group"`
 	Name              types.String         `tfsdk:"name"`
 	SchemaVersion     types.String         `tfsdk:"schema_version"`
 	LastUpdated       types.String         `tfsdk:"last_updated"`
@@ -102,16 +101,13 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"lastYear",
 				)},
 			},
-			"group": schema.StringAttribute{
-				Description: "The group of the dashboard",
-				Computed:    true,
-			},
 			"name": schema.StringAttribute{
 				Description: "The name of the dashboard",
 				Computed:    true,
 			},
 			"schema_version": schema.StringAttribute{
 				Description: "The schema version of the dashboard",
+				Optional:    true,
 				Computed:    true,
 			},
 			"last_updated": schema.StringAttribute{
@@ -187,7 +183,6 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
@@ -226,7 +221,6 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 		TemplateBindings:  state.TemplateBindings,
 		DashboardContent:  state.DashboardContent,
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 	}
@@ -241,13 +235,6 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan squaredupDashboard
 	diags := req.Plan.Get(ctx, &plan)
-	if diags.HasError() {
-		resp.Diagnostics = diags
-		return
-	}
-
-	var state squaredupDashboard
-	diags = req.State.Get(ctx, &state)
 	if diags.HasError() {
 		resp.Diagnostics = diags
 		return
@@ -276,7 +263,7 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		plan.TemplateBindings = jsontypes.NewNormalizedNull()
 	}
 
-	dashboard, err := r.client.UpdateDashboard(state.DashboardID.ValueString(), plan.DisplayName.ValueString(), state.DashboardID.String(), plan.Timeframe.ValueString(), updatedDashboard)
+	dashboard, err := r.client.UpdateDashboard(plan.DashboardID.ValueString(), plan.DisplayName.ValueString(), plan.Timeframe.ValueString(), updatedDashboard)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to update dashboard",
@@ -285,7 +272,7 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	state = squaredupDashboard{
+	plan = squaredupDashboard{
 		DashboardID:       types.StringValue(dashboard.ID),
 		DisplayName:       types.StringValue(dashboard.DisplayName),
 		WorkspaceID:       types.StringValue(dashboard.WorkspaceID),
@@ -293,13 +280,12 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Group:             types.StringValue(dashboard.Group),
 		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
-	diags = resp.State.Set(ctx, &state)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

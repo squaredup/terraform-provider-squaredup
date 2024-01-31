@@ -60,10 +60,9 @@ func (c *SquaredUpClient) GetDashboard(dashboardId string) (*Dashboard, error) {
 	return &newDashboard, nil
 }
 
-func (c *SquaredUpClient) UpdateDashboard(dashboardId string, displayName string, workspaceId string, timeframe string, dashboardContent string) (*Dashboard, error) {
+func (c *SquaredUpClient) UpdateDashboard(dashboardId string, displayName string, timeframe string, dashboardContent string) (*Dashboard, error) {
 	DashboardPayload := map[string]interface{}{
 		"displayName": displayName,
-		"workspaceId": workspaceId,
 		"timeframe":   timeframe,
 	}
 
