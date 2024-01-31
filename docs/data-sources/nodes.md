@@ -49,6 +49,6 @@ data "squaredup_nodes" "acommon_node" {
 
 Read-Only:
 
+- `display_name` (String)
 - `id` (String)
-- `name` (String)
 - `source_name` (String)

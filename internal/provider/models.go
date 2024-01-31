@@ -69,9 +69,9 @@ type SquaredupGremlinQuery struct {
 }
 
 type GremlinQueryResult struct {
-	ID         string   `json:"id"`
-	SourceName []string `json:"sourceName"`
-	Name       []string `json:"name"`
+	ID          string   `json:"id"`
+	SourceName  []string `json:"sourceName"`
+	DisplayName []string `json:"name"`
 }
 
 type DashboardShare struct {
