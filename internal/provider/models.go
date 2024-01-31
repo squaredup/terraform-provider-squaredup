@@ -69,18 +69,9 @@ type SquaredupGremlinQuery struct {
 }
 
 type GremlinQueryResult struct {
-	ID           string   `json:"id"`
-	Label        string   `json:"label"`
-	SourceName   []string `json:"sourceName"`
-	Type         []string `json:"type"`
-	SourceType   []string `json:"sourceType"`
-	Name         []string `json:"name"`
-	SourceId     []string `json:"sourceId"`
-	Search       []string `json:"__search"`
-	DisplayName  []string `json:"__name"`
-	PartitionKey []string `json:"__partitionKey"`
-	TenantId     []string `json:"__tenantId"`
-	ConfigId     []string `json:"__configId"`
+	ID         string   `json:"id"`
+	SourceName []string `json:"sourceName"`
+	Name       []string `json:"name"`
 }
 
 type DashboardShare struct {

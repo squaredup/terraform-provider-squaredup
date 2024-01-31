@@ -29,18 +29,9 @@ type squaredupNodesResponse struct {
 }
 
 type squaredupNodesProperties struct {
-	ID           types.String `tfsdk:"id"`
-	Label        types.String `tfsdk:"label"`
-	SourceName   types.String `tfsdk:"source_name"`
-	Type         types.String `tfsdk:"type"`
-	SourceType   types.String `tfsdk:"source_type"`
-	Name         types.String `tfsdk:"name"`
-	SourceId     types.String `tfsdk:"source_id"`
-	Search       types.String `tfsdk:"search"`
-	DisplayName  types.String `tfsdk:"display_name"`
-	PartitionKey types.String `tfsdk:"partition_key"`
-	TenantId     types.String `tfsdk:"tenant_id"`
-	ConfigId     types.String `tfsdk:"config_id"`
+	ID         types.String `tfsdk:"id"`
+	SourceName types.String `tfsdk:"source_name"`
+	Name       types.String `tfsdk:"name"`
 }
 
 func (d *squaredupNodes) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -55,18 +46,9 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id":            schema.StringAttribute{Computed: true},
-						"label":         schema.StringAttribute{Computed: true},
-						"source_name":   schema.StringAttribute{Computed: true},
-						"type":          schema.StringAttribute{Computed: true},
-						"source_type":   schema.StringAttribute{Computed: true},
-						"name":          schema.StringAttribute{Computed: true},
-						"source_id":     schema.StringAttribute{Computed: true},
-						"search":        schema.StringAttribute{Computed: true},
-						"display_name":  schema.StringAttribute{Computed: true},
-						"partition_key": schema.StringAttribute{Computed: true},
-						"tenant_id":     schema.StringAttribute{Computed: true},
-						"config_id":     schema.StringAttribute{Computed: true},
+						"id":          schema.StringAttribute{Computed: true},
+						"source_name": schema.StringAttribute{Computed: true},
+						"name":        schema.StringAttribute{Computed: true},
 					},
 				},
 			},
@@ -118,18 +100,9 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 	var NodeProperties []squaredupNodesProperties
 	for _, node := range nodes {
 		nodeProperties := squaredupNodesProperties{
-			ID:           types.StringValue(node.ID),
-			Label:        types.StringValue(node.Label),
-			SourceName:   types.StringValue(node.SourceName[0]),
-			Type:         types.StringValue(node.Type[0]),
-			SourceType:   types.StringValue(node.SourceType[0]),
-			Name:         types.StringValue(node.Name[0]),
-			SourceId:     types.StringValue(node.SourceId[0]),
-			Search:       types.StringValue(node.Search[0]),
-			DisplayName:  types.StringValue(node.DisplayName[0]),
-			PartitionKey: types.StringValue(node.PartitionKey[0]),
-			TenantId:     types.StringValue(node.TenantId[0]),
-			ConfigId:     types.StringValue(node.ConfigId[0]),
+			ID:         types.StringValue(node.ID),
+			SourceName: types.StringValue(node.SourceName[0]),
+			Name:       types.StringValue(node.Name[0]),
 		}
 		NodeProperties = append(NodeProperties, nodeProperties)
 	}
