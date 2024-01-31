@@ -144,17 +144,16 @@ EOT
 
 ### Optional
 
+- `schema_version` (String) The schema version of the dashboard
 - `template_bindings` (String) Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.
 - `timeframe` (String) The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear
 
 ### Read-Only
 
 - `dashboard_content` (String) The content of the dashboard. This is the rendered dashboard template with the template bindings applied.
-- `group` (String) The group of the dashboard
 - `id` (String) The ID of the dashboard
 - `last_updated` (String) The last updated date of the dashboard
 - `name` (String) The name of the dashboard
-- `schema_version` (String) The schema version of the dashboard
 
 ## Import
 

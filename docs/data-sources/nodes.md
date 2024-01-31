@@ -49,15 +49,6 @@ data "squaredup_nodes" "acommon_node" {
 
 Read-Only:
 
-- `config_id` (String)
-- `display_name` (String)
 - `id` (String)
-- `label` (String)
 - `name` (String)
-- `partition_key` (String)
-- `search` (String)
-- `source_id` (String)
 - `source_name` (String)
-- `source_type` (String)
-- `tenant_id` (String)
-- `type` (String)
