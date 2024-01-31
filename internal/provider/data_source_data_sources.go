@@ -28,10 +28,6 @@ type squaredupDataSourceModel struct {
 }
 
 type squaredupPluginModel struct {
-	Category    types.String `tfsdk:"category"`
-	Description types.String `tfsdk:"description"`
-	Author      types.String `tfsdk:"author"`
-	LastUpdated types.String `tfsdk:"last_updated"`
 	Version     types.String `tfsdk:"version"`
 	OnPrem      types.Bool   `tfsdk:"on_prem"`
 	DisplayName types.String `tfsdk:"display_name"`
@@ -54,10 +50,6 @@ func (d *squaredupLatestDataSource) Schema(_ context.Context, _ datasource.Schem
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"category":     schema.StringAttribute{Computed: true},
-						"description":  schema.StringAttribute{Computed: true},
-						"author":       schema.StringAttribute{Computed: true},
-						"last_updated": schema.StringAttribute{Computed: true},
 						"version":      schema.StringAttribute{Computed: true},
 						"on_prem":      schema.BoolAttribute{Computed: true},
 						"display_name": schema.StringAttribute{Computed: true},
@@ -89,10 +81,6 @@ func (d *squaredupLatestDataSource) Read(ctx context.Context, req datasource.Rea
 
 	for _, plugin := range plugins {
 		pluginsState := squaredupPluginModel{
-			Category:    types.StringValue(plugin.Category),
-			Description: types.StringValue(plugin.Description),
-			Author:      types.StringValue(plugin.Author),
-			LastUpdated: types.StringValue(plugin.LastUpdated),
 			Version:     types.StringValue(plugin.Version),
 			OnPrem:      types.BoolValue(plugin.OnPrem),
 			DisplayName: types.StringValue(plugin.DisplayName),

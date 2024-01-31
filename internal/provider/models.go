@@ -3,10 +3,6 @@ package provider
 import "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 
 type LatestDataSource struct {
-	Category    string `json:"category"`
-	Description string `json:"description"`
-	Author      string `json:"author"`
-	LastUpdated string `json:"lastUpdated"`
 	LambdaName  string `json:"lambdaName"`
 	Version     string `json:"version"`
 	OnPrem      bool   `json:"onPrem"`
