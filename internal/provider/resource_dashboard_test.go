@@ -55,11 +55,11 @@ EOT
 	})
 	workspace_id = squaredup_workspace.application_workspace.id
 	timeframe = "last12hours"
-	display_name = "Sample Dashboard - Dashboard Test - ` + uuid + `"
+	display_name = "Sample Dashboard - Dashboard Test"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "display_name", "Sample Dashboard - Dashboard Test - "+uuid),
+					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "display_name", "Sample Dashboard - Dashboard Test"),
 					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "timeframe", "last12hours"),
 					resource.TestCheckResourceAttrSet("squaredup_dashboard.sample_dashboard", "dashboard_content"),
 					resource.TestCheckResourceAttrSet("squaredup_dashboard.sample_dashboard", "schema_version"),
@@ -116,11 +116,11 @@ EOT
 	})
 	workspace_id = squaredup_workspace.application_workspace.id
 	timeframe = "last1hour"
-	display_name = "Sample Dashboard - Dashboard Test - ` + uuid + `Updated"
+	display_name = "Sample Dashboard - Dashboard Test Updated"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "display_name", "Sample Dashboard - Dashboard Test - "+uuid+"Updated"),
+					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "display_name", "Sample Dashboard - Dashboard Test Updated"),
 					resource.TestCheckResourceAttr("squaredup_dashboard.sample_dashboard", "timeframe", "last1hour"),
 				),
 			},

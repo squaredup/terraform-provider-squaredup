@@ -30,7 +30,7 @@ resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", `Slack Alert - Team DevOps - `+uuid),
+					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", "Slack Alert - Team DevOps - "+uuid),
 					resource.TestCheckResourceAttrSet("squaredup_alerting_channel.slack_api_alert_channel_test", "id"),
 				),
 			},
@@ -60,7 +60,7 @@ resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", `Slack Alert - DevOps Team - `+uuid),
+					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", "Slack Alert - DevOps Team - "+uuid),
 				),
 			},
 		},
