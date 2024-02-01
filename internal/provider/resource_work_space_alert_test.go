@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/pborman/uuid"
 )
 
 func TestAccResourceWorkSpaceAlert(t *testing.T) {
+	uuid := uuid.NewRandom().String()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -18,12 +20,12 @@ data "squaredup_datasources" "sample_data" {
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data Workspace Alert Test"
+	display_name     = "Sample Data Workspace Alert Test - ` + uuid + `"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
 resource "squaredup_workspace" "application_workspace" {
-	display_name      = "Application Team Workspace Alert Test"
+	display_name      = "Workspace Alert Test - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
 }
@@ -159,7 +161,7 @@ EOT
 	perf_lambda_errors_id = local.perf_lambda_errors_data_stream.id
 	})
 	workspace_id = squaredup_workspace.application_workspace.id
-	display_name = "Sample Dashboard for Workspace Alert Test"
+	display_name = "Sample Dashboard"
 	timeframe    = "last12hours"
 }
 
@@ -172,7 +174,7 @@ locals {
 }
 
 resource "squaredup_alerting_channel" "slack_api_alert" {
-	display_name    = "Slack Alert - Team DevOps for Workspace Alert Test"
+	display_name    = "Slack Alert - Team DevOps - ` + uuid + `"
 	channel_type_id = "channeltype-00000000000000000001"
 	config = jsonencode({
 	channel = "devops"
@@ -232,12 +234,12 @@ data "squaredup_datasources" "sample_data" {
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data Workspace Alert Test"
+	display_name     = "Sample Data Workspace Alert Test - ` + uuid + `"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
 resource "squaredup_workspace" "application_workspace" {
-	display_name      = "Application Team Workspace Alert Test"
+	display_name      = "Workspace Alert Test - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
 }
@@ -373,7 +375,7 @@ EOT
 	perf_lambda_errors_id = local.perf_lambda_errors_data_stream.id
 	})
 	workspace_id = squaredup_workspace.application_workspace.id
-	display_name = "Sample Dashboard for Workspace Alert Test"
+	display_name = "Sample Dashboard"
 	timeframe    = "last12hours"
 }
 
@@ -386,7 +388,7 @@ locals {
 }
 
 resource "squaredup_alerting_channel" "slack_api_alert" {
-	display_name    = "Slack Alert - Team DevOps for Workspace Alert Test"
+	display_name    = "Slack Alert - Team DevOps - ` + uuid + `"
 	channel_type_id = "channeltype-00000000000000000001"
 	config = jsonencode({
 	channel = "devops"

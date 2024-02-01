@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/pborman/uuid"
 )
 
 func TestAccResourceDashboardSharing(t *testing.T) {
+	uuid := uuid.NewRandom().String()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -14,7 +16,7 @@ func TestAccResourceDashboardSharing(t *testing.T) {
 				Config: providerConfig +
 					`
 resource "squaredup_workspace" "application_workspace" {
-	display_name        = "OA Test Workspace"
+	display_name        = "OA Test Workspace - ` + uuid + `"
 	description         = "Workspace with Dashboards for Application Team"
 	allow_dashboard_sharing = true
 }
@@ -79,50 +81,50 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 				Config: providerConfig +
 					`
 resource "squaredup_workspace" "application_workspace" {
-display_name        = "OA Test Workspace"
-description         = "Workspace with Dashboards for Application Team"
-allow_dashboard_sharing = true
+	display_name        = "OA Test Workspace - ` + uuid + `"
+	description         = "Workspace with Dashboards for Application Team"
+	allow_dashboard_sharing = true
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
-dashboard_template = <<EOT
+	dashboard_template = <<EOT
 {
 "_type": "layout/grid",
 "contents": [
-{
-"x": 0,
-"h": 2,
-"i": "1",
-"y": 0,
-"config": {
-	"title": "",
-	"description": "",
-	"_type": "tile/text",
-	"visualisation": {
+	{
+	"x": 0,
+	"h": 2,
+	"i": "1",
+	"y": 0,
 	"config": {
-		"content": "Sample Tile",
-		"autoSize": true,
-		"fontSize": 16,
-		"align": "center"
+		"title": "",
+		"description": "",
+		"_type": "tile/text",
+		"visualisation": {
+		"config": {
+			"content": "Sample Tile",
+			"autoSize": true,
+			"fontSize": 16,
+			"align": "center"
+		}
+		}
+	},
+	"w": 4
 	}
-	}
-},
-"w": 4
-}
 ],
 "columns": 1,
 "version": 1
 }
 EOT
-workspace_id = squaredup_workspace.application_workspace.id
-display_name = "Sample Dashboard - OA Test"
+	workspace_id = squaredup_workspace.application_workspace.id
+	display_name = "Sample Dashboard - OA Test"
 }
 
 resource "squaredup_dashboard_share" "sample_dashboard_share" {
-dashboard_id           = squaredup_dashboard.sample_dashboard.id
-workspace_id           = squaredup_workspace.application_workspace.id
-require_authentication = false
-enabled            = false
+	dashboard_id           = squaredup_dashboard.sample_dashboard.id
+	workspace_id           = squaredup_workspace.application_workspace.id
+	require_authentication = false
+	enabled                = false
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(

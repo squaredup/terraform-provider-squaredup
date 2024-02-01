@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/pborman/uuid"
 )
 
 func TestNodesDataSource(t *testing.T) {
+	uuid := uuid.NewRandom().String()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -18,7 +20,7 @@ data "squaredup_datasources" "sample_data" {
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data - Nodes Test"
+	display_name     = "Sample Data - Nodes Test - ` + uuid + `"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 

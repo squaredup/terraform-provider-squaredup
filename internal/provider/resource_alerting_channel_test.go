@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/pborman/uuid"
 )
 
 func TestAccResourceAlertingChannel(t *testing.T) {
+	uuid := uuid.NewRandom().String()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -18,7 +20,7 @@ data "squaredup_alerting_channel_types" "example" {
 }
 
 resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
-	display_name    = "Slack Alert - Team DevOps"
+	display_name    = "Slack Alert - Team DevOps - ` + uuid + `"
 	channel_type_id = data.squaredup_alerting_channel_types.example.alerting_channel_types[0].channel_id
 	config = jsonencode({
 		channel = "devops"
@@ -28,7 +30,7 @@ resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", "Slack Alert - Team DevOps"),
+					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", `Slack Alert - Team DevOps - `+uuid),
 					resource.TestCheckResourceAttrSet("squaredup_alerting_channel.slack_api_alert_channel_test", "id"),
 				),
 			},
@@ -48,7 +50,7 @@ data "squaredup_alerting_channel_types" "example" {
 }
 
 resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
-	display_name    = "Slack Alert - DevOps Team"
+	display_name    = "Slack Alert - DevOps Team - ` + uuid + `"
 	channel_type_id = data.squaredup_alerting_channel_types.example.alerting_channel_types[0].channel_id
 	config = jsonencode({
 		channel = "devops"
@@ -58,7 +60,7 @@ resource "squaredup_alerting_channel" "slack_api_alert_channel_test" {
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", "Slack Alert - DevOps Team"),
+					resource.TestCheckResourceAttr("squaredup_alerting_channel.slack_api_alert_channel_test", "display_name", `Slack Alert - DevOps Team - `+uuid),
 				),
 			},
 		},
