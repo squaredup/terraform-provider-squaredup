@@ -1,5 +1,8 @@
 # SquaredUp Terraform Provider
 
+[![Tests](https://github.com/squaredup/terraform-provider-squaredup/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/squaredup/terraform-provider-squaredup/actions/workflows/test.yml) [![Registry](https://img.shields.io/badge/squaredup-Terraform%20Registry-purple)](https://registry.terraform.io/providers/squaredup/squaredup/latest)
+
+___
 A Terraform provider for managing [SquaredUp](https://app.squaredup.com/)
 
 ## Requirements
@@ -20,7 +23,7 @@ go install
 
 ## Using the provider
 
-Please see the docs.
+Usage documentation is available on [Terraform Registry](https://registry.terraform.io/providers/squaredup/squaredup/latest/docs)
 
 ## Developing the Provider
 

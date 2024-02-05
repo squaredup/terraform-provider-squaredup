@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/pborman/uuid"
 )
 
 func TestAccResourceScripts(t *testing.T) {
+	uuid := uuid.NewRandom().String()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -14,7 +16,7 @@ func TestAccResourceScripts(t *testing.T) {
 				Config: providerConfig +
 					`
 resource "squaredup_script" "example" {
-	display_name = "Example Script"
+	display_name = "Example Script - ` + uuid + `"
 	script_type  = "tileDataJS" #tileDataJS or monitorConditionJS
 	script       = <<EOT
 async function getData(params, api) {
@@ -41,7 +43,7 @@ EOT
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_script.example", "display_name", "Example Script"),
+					resource.TestCheckResourceAttr("squaredup_script.example", "display_name", "Example Script - "+uuid),
 					resource.TestCheckResourceAttr("squaredup_script.example", "script_type", "tileDataJS"),
 					resource.TestCheckResourceAttrSet("squaredup_script.example", "id"),
 				),
@@ -58,7 +60,7 @@ EOT
 				Config: providerConfig +
 					`
 resource "squaredup_script" "example" {
-	display_name = "Example Script Updated"
+	display_name = "Example Script Updated - ` + uuid + `"
 	script_type  = "tileDataJS" #tileDataJS or monitorConditionJS
 	script       = <<EOT
 async function getData(params, api) {
@@ -85,7 +87,7 @@ EOT
 }
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_script.example", "display_name", "Example Script Updated"),
+					resource.TestCheckResourceAttr("squaredup_script.example", "display_name", "Example Script Updated - "+uuid),
 				),
 			},
 		},

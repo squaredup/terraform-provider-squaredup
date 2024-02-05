@@ -42,7 +42,3 @@ Read-Only:
 - `definition_name` (String)
 - `display_name` (String)
 - `id` (String)
-- `last_updated` (String)
-- `parent_plugin_id` (String)
-- `parent_plugin_version` (String)
-- `type` (String)

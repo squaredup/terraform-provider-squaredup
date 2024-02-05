@@ -3,10 +3,6 @@ package provider
 import "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 
 type LatestDataSource struct {
-	Category    string `json:"category"`
-	Description string `json:"description"`
-	Author      string `json:"author"`
-	LastUpdated string `json:"lastUpdated"`
 	LambdaName  string `json:"lambdaName"`
 	Version     string `json:"version"`
 	OnPrem      bool   `json:"onPrem"`
@@ -49,14 +45,10 @@ type WorkspaceLinks struct {
 }
 
 type DataSourceDataStreams struct {
-	DisplayName         string `json:"displayName"`
-	DataSourceName      string `json:"dataSourceName"`
-	LastUpdated         string `json:"lastUpdated"`
-	ParentPluginVersion string `json:"parentPluginVersion"`
-	ParentPluginID      string `json:"parentPluginId"`
-	Type                string `json:"type"`
-	ID                  string `json:"id"`
-	Definition          struct {
+	DisplayName    string `json:"displayName"`
+	DataSourceName string `json:"dataSourceName"`
+	ID             string `json:"id"`
+	Definition     struct {
 		Name string `json:"name"`
 	} `json:"definition"`
 }
@@ -67,7 +59,6 @@ type Dashboard struct {
 	WorkspaceID   string               `json:"workspaceId"`
 	ID            string               `json:"id"`
 	Content       jsontypes.Normalized `json:"content"`
-	Group         string               `json:"group,omitempty"`
 	Name          string               `json:"name"`
 	SchemaVersion string               `json:"schemaVersion"`
 	Timeframe     string               `json:"timeframe,omitempty"`
@@ -78,18 +69,9 @@ type SquaredupGremlinQuery struct {
 }
 
 type GremlinQueryResult struct {
-	ID           string   `json:"id"`
-	Label        string   `json:"label"`
-	SourceName   []string `json:"sourceName"`
-	Type         []string `json:"type"`
-	SourceType   []string `json:"sourceType"`
-	Name         []string `json:"name"`
-	SourceId     []string `json:"sourceId"`
-	Search       []string `json:"__search"`
-	DisplayName  []string `json:"__name"`
-	PartitionKey []string `json:"__partitionKey"`
-	TenantId     []string `json:"__tenantId"`
-	ConfigId     []string `json:"__configId"`
+	ID          string   `json:"id"`
+	SourceName  []string `json:"sourceName"`
+	DisplayName []string `json:"name"`
 }
 
 type DashboardShare struct {

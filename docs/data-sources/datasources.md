@@ -34,11 +34,7 @@ data "squaredup_datasources" "sample_data" {
 
 Read-Only:
 
-- `author` (String)
-- `category` (String)
-- `description` (String)
 - `display_name` (String)
 - `id` (String)
-- `last_updated` (String)
 - `on_prem` (Boolean)
 - `version` (String)
