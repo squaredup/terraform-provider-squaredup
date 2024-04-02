@@ -46,6 +46,7 @@ func determineBaseURL(region string) (string, error) {
 	} else if region == "eu" {
 		return "https://eu.api.squaredup.com", nil
 	} else if strings.HasPrefix(region, "https://") {
+		region = strings.TrimSuffix(region, "/")
 		return region, nil
 	}
 	return "", fmt.Errorf("unsupported region or URL scheme: %s", region)
