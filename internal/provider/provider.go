@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"os"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -48,10 +49,7 @@ func (p *squaredupProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 			"region": schema.StringAttribute{
 				Description: "Region of your SquaredUp instance. May also be set via the SQUAREDUP_REGION environment variable.",
 				Optional:    true,
-				Validators: []validator.String{stringvalidator.OneOf(
-					"us",
-					"eu",
-				)},
+				Validators:  []validator.String{stringvalidator.RegexMatches(regexp.MustCompile(`^(us|eu|https://.*)$`), "Invalid region format. It must be either 'us', 'eu', or start with 'https://'")},
 			},
 			"api_key": schema.StringAttribute{
 				Description: "API Key for SquaredUp API. May also be set via the SQUAREDUP_API_KEY environment variable.",
@@ -137,8 +135,8 @@ func (p *squaredupProvider) Configure(ctx context.Context, req provider.Configur
 		resp.Diagnostics.AddError(
 			"Unable to Create SquaredUp API Client",
 			"An unexpected error occurred while creating the SquaredUp API client. "+
-				"Please check the configuration and try again. If the error persists, please open an issue on GitHub. "+
-				err.Error(),
+				"Please check the configuration and try again. If the error persists, please open an issue on GitHub. \n"+
+				"Error: "+err.Error(),
 		)
 		return
 	}

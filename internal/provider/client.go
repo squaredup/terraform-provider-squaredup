@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type SquaredUpClient struct {
@@ -26,14 +27,14 @@ func NewSquaredUpClient(region string, apiKey string) (*SquaredUpClient, error) 
 }
 
 func determineBaseURL(region string) (string, error) {
-	switch region {
-	case "us":
+	if region == "us" {
 		return "https://api.squaredup.com", nil
-	case "eu":
+	} else if region == "eu" {
 		return "https://eu.api.squaredup.com", nil
-	default:
-		return "", fmt.Errorf("unsupported region: %s", region)
+	} else if strings.HasPrefix(region, "https://") {
+		return region, nil
 	}
+	return "", fmt.Errorf("unsupported region or URL scheme: %s", region)
 }
 
 func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
