@@ -19,11 +19,25 @@ func NewSquaredUpClient(region string, apiKey string) (*SquaredUpClient, error) 
 		return nil, err
 	}
 
-	return &SquaredUpClient{
+	req, err := http.NewRequest("GET", baseURL+"/api/plugins/latest", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	client := &http.Client{}
+
+	squaredUpClient := &SquaredUpClient{
 		baseURL:    baseURL,
 		apiKey:     apiKey,
-		httpClient: &http.Client{},
-	}, nil
+		httpClient: client,
+	}
+
+	_, err = squaredUpClient.doRequest(req)
+	if err != nil {
+		return nil, fmt.Errorf("invalid api key with the provided region. check the api key and region and try again")
+	}
+
+	return squaredUpClient, nil
 }
 
 func determineBaseURL(region string) (string, error) {
