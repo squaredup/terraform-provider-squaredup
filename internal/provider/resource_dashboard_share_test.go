@@ -66,7 +66,6 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "require_authentication", "true"),
 					resource.TestCheckResourceAttr("squaredup_dashboard_share.sample_dashboard_share", "enabled", "true"),
 					resource.TestCheckResourceAttrSet("squaredup_dashboard_share.sample_dashboard_share", "id"),
-					resource.TestCheckResourceAttrSet("squaredup_dashboard_share.sample_dashboard_share", "dashboard_share_link"),
 				),
 			},
 			// Import Test

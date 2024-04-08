@@ -76,7 +76,6 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 
 ### Read-Only
 
-- `dashboard_share_link` (String) Shareable link for the dashboard
 - `id` (String) The ID of the dashboard share
 - `last_updated` (String) The last time the Dashboard Share was updated
 
