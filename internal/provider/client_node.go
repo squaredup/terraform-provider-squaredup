@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-const maxRetries = 3
-const retryDelaySeconds = 5
+const maxRetries = 10
+const retryDelaySeconds = 30
 
 func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string) ([]GremlinQueryResult, error) {
 	for attempt := 1; attempt <= maxRetries; attempt++ {
