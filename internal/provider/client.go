@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type SquaredUpClient struct {
@@ -18,22 +19,37 @@ func NewSquaredUpClient(region string, apiKey string) (*SquaredUpClient, error) 
 		return nil, err
 	}
 
-	return &SquaredUpClient{
+	req, err := http.NewRequest("GET", baseURL+"/api/plugins/latest", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	client := &http.Client{}
+
+	squaredUpClient := &SquaredUpClient{
 		baseURL:    baseURL,
 		apiKey:     apiKey,
-		httpClient: &http.Client{},
-	}, nil
+		httpClient: client,
+	}
+
+	_, err = squaredUpClient.doRequest(req)
+	if err != nil {
+		return nil, fmt.Errorf("invalid api key with the provided region. check the api key and region and try again")
+	}
+
+	return squaredUpClient, nil
 }
 
 func determineBaseURL(region string) (string, error) {
-	switch region {
-	case "us":
+	if region == "us" {
 		return "https://api.squaredup.com", nil
-	case "eu":
+	} else if region == "eu" {
 		return "https://eu.api.squaredup.com", nil
-	default:
-		return "", fmt.Errorf("unsupported region: %s", region)
+	} else if strings.HasPrefix(region, "https://") {
+		region = strings.TrimSuffix(region, "/")
+		return region, nil
 	}
+	return "", fmt.Errorf("unsupported region or URL scheme: %s", region)
 }
 
 func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
