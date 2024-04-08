@@ -352,10 +352,10 @@ func determineNotifyOn(monitors AlertMonitors) (string, error) {
 		return "all_monitors", nil
 	} else if monitors.RollupHealth {
 		return "workspace_state", nil
-	} else if len(monitors.Dashboards) > 0 {
+	} else if len(monitors.Dashboards) >= 0 {
 		return "selected_monitors", nil
 	}
 
-	err := fmt.Errorf("Unable to determine notify_on value")
+	err := fmt.Errorf("unable to determine notify_on value")
 	return "", err
 }

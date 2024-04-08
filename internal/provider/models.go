@@ -126,7 +126,7 @@ type AlertMonitors struct {
 	IncludeAllTiles       bool                      `json:"includeAllTiles"`
 	DashboardRollupHealth bool                      `json:"dashboardRollupHealth"`
 	RollupHealth          bool                      `json:"rollupHealth"`
-	Dashboards            map[string]AlertDashboard `json:"dashboards,omitempty"`
+	Dashboards            map[string]AlertDashboard `json:"dashboards"`
 }
 
 type AlertDashboard struct {
