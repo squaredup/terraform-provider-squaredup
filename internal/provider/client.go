@@ -11,9 +11,10 @@ type SquaredUpClient struct {
 	baseURL    string
 	apiKey     string
 	httpClient *http.Client
+	version    string
 }
 
-func NewSquaredUpClient(region string, apiKey string) (*SquaredUpClient, error) {
+func NewSquaredUpClient(region string, apiKey string, version string) (*SquaredUpClient, error) {
 	baseURL, err := determineBaseURL(region)
 	if err != nil {
 		return nil, err
@@ -30,6 +31,7 @@ func NewSquaredUpClient(region string, apiKey string) (*SquaredUpClient, error) 
 		baseURL:    baseURL,
 		apiKey:     apiKey,
 		httpClient: client,
+		version:    version,
 	}
 
 	_, err = squaredUpClient.doRequest(req)
@@ -57,6 +59,8 @@ func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
 	q.Add("apiKey", c.apiKey)
 	req.URL.RawQuery = q.Encode()
 
+	req.Header.Add("User-Agent", fmt.Sprintf("SquaredUp-Terraform-Provider/%s", c.version))
+
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -72,6 +76,5 @@ func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, body)
 	}
 
-	return body, err
-
+	return body, nil
 }

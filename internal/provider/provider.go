@@ -130,7 +130,7 @@ func (p *squaredupProvider) Configure(ctx context.Context, req provider.Configur
 	ctx = tflog.SetField(ctx, "squaredup_api_key", apiKey)
 	tflog.MaskFieldValuesWithFieldKeys(ctx, "squaredup_api_key")
 
-	client, err := NewSquaredUpClient(region, apiKey)
+	client, err := NewSquaredUpClient(region, apiKey, p.version)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create SquaredUp API Client",
