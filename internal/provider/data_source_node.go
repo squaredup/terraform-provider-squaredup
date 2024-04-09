@@ -26,6 +26,7 @@ type squaredupNodesResponse struct {
 	NodeProperties []squaredupNodesProperties `tfsdk:"node_properties"`
 	DataSourceID   types.String               `tfsdk:"data_source_id"`
 	NodeName       types.String               `tfsdk:"node_name"`
+	AllowNoData    types.Bool                 `tfsdk:"allow_no_data"`
 }
 
 type squaredupNodesProperties struct {
@@ -44,6 +45,7 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 			"node_properties": schema.ListNestedAttribute{
 				Description: "Node Properties",
 				Computed:    true,
+				Optional:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id":           schema.StringAttribute{Computed: true},
@@ -58,6 +60,10 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 			},
 			"node_name": schema.StringAttribute{
 				Description: "Node Name",
+				Optional:    true,
+			},
+			"allow_no_data": schema.BoolAttribute{
+				Description: "If true, the data source will return an empty list if its unable to find the node.",
 				Optional:    true,
 			},
 		},
@@ -88,7 +94,7 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	nodes, err := d.client.GetNodes(state.DataSourceID.ValueString(), state.NodeName.ValueString())
+	nodes, err := d.client.GetNodes(state.DataSourceID.ValueString(), state.NodeName.ValueString(), state.AllowNoData.ValueBool())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Retrieve Nodes",

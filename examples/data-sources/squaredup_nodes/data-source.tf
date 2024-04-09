@@ -12,3 +12,10 @@ data "squaredup_nodes" "acommon_node" {
   data_source_id = squaredup_datasource.sample_data_source.id
   node_name      = "account-common-lambda"
 }
+
+data "squaredup_nodes" "s3_node" {
+  depends_on     = [squaredup_datasource.sample_data_source]
+  data_source_id = squaredup_datasource.sample_data_source.id
+  node_name      = "account-common-s3"
+  allow_no_data = true
+}
