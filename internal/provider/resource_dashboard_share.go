@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -35,7 +34,6 @@ type DashboardSharing struct {
 	WorkspaceID           types.String `tfsdk:"workspace_id"`
 	RequireAuthentication types.Bool   `tfsdk:"require_authentication"`
 	EnableLink            types.Bool   `tfsdk:"enabled"`
-	SharedDashboardLink   types.String `tfsdk:"dashboard_share_link"`
 	LastUpdated           types.String `tfsdk:"last_updated"`
 }
 
@@ -71,10 +69,6 @@ func (r *DashboardShareResource) Schema(_ context.Context, _ resource.SchemaRequ
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
-			},
-			"dashboard_share_link": schema.StringAttribute{
-				Description: "Shareable link for the dashboard",
-				Computed:    true,
 			},
 			"last_updated": schema.StringAttribute{
 				Description: "The last time the Dashboard Share was updated",
@@ -134,7 +128,6 @@ func (r *DashboardShareResource) Create(ctx context.Context, req resource.Create
 		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
 		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
 		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
-		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 		LastUpdated:           types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
@@ -168,7 +161,6 @@ func (r *DashboardShareResource) Read(ctx context.Context, req resource.ReadRequ
 		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
 		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
 		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
-		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 	}
 
 	diags = resp.State.Set(ctx, &state)
@@ -220,7 +212,6 @@ func (r *DashboardShareResource) Update(ctx context.Context, req resource.Update
 		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
 		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
 		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
-		SharedDashboardLink:   types.StringValue(generateSharedDashboardURL(sharedDashboard.ID)),
 		LastUpdated:           types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
@@ -252,8 +243,4 @@ func (r *DashboardShareResource) Delete(ctx context.Context, req resource.Delete
 
 func (r *DashboardShareResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func generateSharedDashboardURL(id string) string {
-	return "https://app.squaredup.com/openaccess/" + strings.Split(id, "-")[1]
 }
