@@ -45,7 +45,6 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 			"node_properties": schema.ListNestedAttribute{
 				Description: "Node Properties",
 				Computed:    true,
-				Optional:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id":           schema.StringAttribute{Computed: true},
