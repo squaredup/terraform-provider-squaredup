@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -35,7 +36,7 @@ type squaredupDashboard struct {
 	DashboardID       types.String         `tfsdk:"id"`
 	DisplayName       types.String         `tfsdk:"display_name"`
 	WorkspaceID       types.String         `tfsdk:"workspace_id"`
-	DashboardTemplate jsontypes.Normalized `tfsdk:"dashboard_template"`
+	DashboardTemplate types.String         `tfsdk:"dashboard_template"`
 	TemplateBindings  jsontypes.Normalized `tfsdk:"template_bindings"`
 	DashboardContent  jsontypes.Normalized `tfsdk:"dashboard_content"`
 	Timeframe         types.String         `tfsdk:"timeframe"`
@@ -70,7 +71,6 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"dashboard_template": schema.StringAttribute{
 				Description: "Dashboard template to use for the dashboard",
 				Required:    true,
-				CustomType:  jsontypes.NormalizedType{},
 			},
 			"template_bindings": schema.StringAttribute{
 				Description: "Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.",
@@ -156,6 +156,16 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to render template",
+				err.Error(),
+			)
+			return
+		}
+		// Check if the rendered template is valid JSON
+		var jsonData interface{}
+		err = json.Unmarshal([]byte(updatedTemplate), &jsonData)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Rendered template is not a valid JSON. Please check that the JSON is valid after rendering the template with the template bindings.",
 				err.Error(),
 			)
 			return
@@ -253,6 +263,16 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to render template",
+				err.Error(),
+			)
+			return
+		}
+		// Check if the rendered template is valid JSON
+		var jsonData interface{}
+		err = json.Unmarshal([]byte(updatedTemplate), &jsonData)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Rendered template is not a valid JSON. Please check that the JSON is valid after rendering the template with the template bindings.",
 				err.Error(),
 			)
 			return

@@ -107,16 +107,11 @@ resource "squaredup_dashboard" "sample_dashboard" {
           },
           "id": "{{perf_lambda_errors_id}}",
           "group": {
-            "by": [
-              "data.lambdaErrors.label",
-              "uniqueValues"
-            ],
+            "by": ["data.lambdaErrors.label", "uniqueValues"],
             "aggregate": [
               {
                 "type": "sum",
-                "names": [
-                  "data.lambdaErrors.value"
-                ]
+                "names": ["data.lambdaErrors.value"]
               }
             ]
           }
@@ -151,9 +146,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
           "aggregation": "top",
           "column": "data.cost.value_sum",
           "condition": {
-            "columns": [
-              "data.cost.value_sum"
-            ],
+            "columns": ["data.cost.value_sum"],
             "logic": {
               "if": [
                 {
@@ -161,7 +154,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
                     {
                       "var": "top"
                     },
-                    500
+                    {{ cost_threshold }}
                   ]
                 },
                 "error",
@@ -182,16 +175,11 @@ resource "squaredup_dashboard" "sample_dashboard" {
           "pluginConfigId": "{{sample_data_source_id}}",
           "id": "{{cost_data_stream}}",
           "group": {
-            "by": [
-              "data.cost.label",
-              "uniqueValues"
-            ],
+            "by": ["data.cost.label", "uniqueValues"],
             "aggregate": [
               {
                 "type": "sum",
-                "names": [
-                  "data.cost.value"
-                ]
+                "names": ["data.cost.value"]
               }
             ]
           }
@@ -202,14 +190,10 @@ resource "squaredup_dashboard" "sample_dashboard" {
         "scope": {
           "query": "g.V().has('id', within(ids_xAvxTqo9n9QCEeCHq2d1)).has(\"__configId\", \"{{sample_data_source_id}}\").or(__.has(\"sourceType\", within(\"sample-function\",\"sample-server\")))",
           "bindings": {
-            "ids_xAvxTqo9n9QCEeCHq2d1": [
-              "{{acommon_node_id}}"
-            ]
+            "ids_xAvxTqo9n9QCEeCHq2d1": ["{{acommon_node_id}}"]
           },
           "queryDetail": {
-            "ids": [
-              "{{acommon_node_id}}"
-            ]
+            "ids": ["{{acommon_node_id}}"]
           }
         }
       }
@@ -225,6 +209,7 @@ EOT
     perf_lambda_errors_id = local.perf_lambda_errors_data_stream.id
     cost_data_stream      = local.cost_data_stream.id
     acommon_node_id       = data.squaredup_nodes.acommon_node.node_properties[0].id
+    cost_threshold        = 500
   })
   workspace_id = squaredup_workspace.application_workspace.id
   display_name = "Sample Dashboard"
