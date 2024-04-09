@@ -47,6 +47,9 @@ data "squaredup_nodes" "s3_node" {
 
 - `allow_no_data` (Boolean) If true, the data source will return an empty list if its unable to find the node.
 - `node_name` (String) Node Name
+
+### Read-Only
+
 - `node_properties` (Attributes List) Node Properties (see [below for nested schema](#nestedatt--node_properties))
 
 <a id="nestedatt--node_properties"></a>
