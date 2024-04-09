@@ -182,35 +182,10 @@ func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	var alertingRules []workspaceAlert
-	for _, rule := range readWorkspace.Data.AlertingRules {
-		var selectedMonitors []SelectedMonitors
-		for dashID, dashTiles := range rule.Conditions.Monitors.Dashboards {
-			var tilesIDs []types.String
-			for tileID, tile := range dashTiles.Tiles {
-				if tile.Include {
-					tilesIDs = append(tilesIDs, types.StringValue(tileID))
-				}
-			}
-			selectedMonitors = append(selectedMonitors, SelectedMonitors{
-				DashboardID: types.StringValue(dashID),
-				TilesID:     tilesIDs,
-			})
-		}
-
-		notifyOn, err := determineNotifyOn(rule.Conditions.Monitors)
-		if err != nil {
-			resp.Diagnostics.AddError("Error determining notify_on value", err.Error())
-			return
-		}
-
-		alertingRule := workspaceAlert{
-			Channel:          types.StringValue(rule.Channels[0].ID),
-			PreviewImage:     types.BoolValue(rule.Channels[0].IncludePreviewImage),
-			NotifyOn:         types.StringValue(notifyOn),
-			SelectedMonitors: selectedMonitors,
-		}
-		alertingRules = append(alertingRules, alertingRule)
+	alertingRules, err := constructAlertingRules(readWorkspace)
+	if err != nil {
+		resp.Diagnostics.AddError("Error constructing alerting rules", err.Error())
+		return
 	}
 
 	updatedState := workspaceAlerts{
@@ -352,10 +327,45 @@ func determineNotifyOn(monitors AlertMonitors) (string, error) {
 		return "all_monitors", nil
 	} else if monitors.RollupHealth {
 		return "workspace_state", nil
-	} else if len(monitors.Dashboards) > 0 {
+	} else if len(monitors.Dashboards) >= 0 {
 		return "selected_monitors", nil
 	}
 
-	err := fmt.Errorf("Unable to determine notify_on value")
+	err := fmt.Errorf("unable to determine notify_on value")
 	return "", err
+}
+
+func constructAlertingRules(readWorkspaceData *WorkspaceRead) ([]workspaceAlert, error) {
+	var alertingRules []workspaceAlert
+
+	for _, rule := range readWorkspaceData.Data.AlertingRules {
+		var selectedMonitors []SelectedMonitors
+		for dashID, dashTiles := range rule.Conditions.Monitors.Dashboards {
+			var tilesIDs []types.String
+			for tileID, tile := range dashTiles.Tiles {
+				if tile.Include {
+					tilesIDs = append(tilesIDs, types.StringValue(tileID))
+				}
+			}
+			selectedMonitors = append(selectedMonitors, SelectedMonitors{
+				DashboardID: types.StringValue(dashID),
+				TilesID:     tilesIDs,
+			})
+		}
+
+		notifyOn, err := determineNotifyOn(rule.Conditions.Monitors)
+		if err != nil {
+			return nil, err
+		}
+
+		alertingRule := workspaceAlert{
+			Channel:          types.StringValue(rule.Channels[0].ID),
+			PreviewImage:     types.BoolValue(rule.Channels[0].IncludePreviewImage),
+			NotifyOn:         types.StringValue(notifyOn),
+			SelectedMonitors: selectedMonitors,
+		}
+		alertingRules = append(alertingRules, alertingRule)
+	}
+
+	return alertingRules, nil
 }
