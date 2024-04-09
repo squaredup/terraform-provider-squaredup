@@ -194,7 +194,7 @@ EOT
     perf_lambda_errors_id = local.perf_lambda_errors_data_stream.id
     cost_data_stream      = local.cost_data_stream.id
     acommon_node_id       = data.squaredup_nodes.acommon_node.node_properties[0].id
-    cost_threshold  = 500
+    cost_threshold        = 500
   })
   workspace_id = squaredup_workspace.application_workspace.id
   display_name = "Sample Dashboard"
