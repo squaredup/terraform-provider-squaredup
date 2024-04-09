@@ -17,5 +17,5 @@ data "squaredup_nodes" "s3_node" {
   depends_on     = [squaredup_datasource.sample_data_source]
   data_source_id = squaredup_datasource.sample_data_source.id
   node_name      = "account-common-s3"
-  allow_no_data = true
+  allow_no_data  = true
 }
