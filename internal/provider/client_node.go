@@ -60,6 +60,8 @@ func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, allowNu
 		}
 
 		gremlinQueryResults = response.GremlinQueryResults
+		break
+
 	}
 
 	return gremlinQueryResults, nil
