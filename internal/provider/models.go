@@ -150,3 +150,43 @@ type Script struct {
 type ScriptConfig struct {
 	Src string `json:"src"`
 }
+
+type ScopeCreate struct {
+	Scope Scope `json:"scope"`
+}
+
+type Scope struct {
+	Name        string                 `json:"name"`
+	Version     int                    `json:"version"`
+	Query       string                 `json:"query"`
+	Bindings    map[string]interface{} `json:"bindings,omitempty"`
+	QueryDetail ScopeQueryDetail       `json:"queryDetail"`
+}
+
+type ScopeQueryDetail struct {
+	IDs          []string                 `json:"ids,omitempty"`
+	Plugins      []ScopeQueryDetailPlugin `json:"plugins,omitempty"`
+	Types        []ScopeQueryDetailType   `json:"types,omitempty"`
+	BooleanQuery string                   `json:"booleanQuery,omitempty"`
+}
+
+type ScopeQueryDetailPlugin struct {
+	Value string `json:"value,omitempty"`
+}
+
+type ScopeQueryDetailType struct {
+	Value string `json:"value,omitempty"`
+}
+
+type ScopeRead struct {
+	ID          string    `json:"id"`
+	DisplayName string    `json:"displayName"`
+	Data        ScopeData `json:"data"`
+	WorkspaceID string    `json:"workspaceId"`
+}
+
+type ScopeData struct {
+	ID          string `json:"id"`
+	Query       string `json:"query"`
+	QueryDetail string `json:"queryDetail"`
+}
