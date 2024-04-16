@@ -15,12 +15,12 @@ func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, allowNu
 	var gremlinQueryResults []GremlinQueryResult
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		rb := map[string]interface{}{
-			"gremlinQuery": "g.V().has('__configId', '" + dataSourceId + "').has('name', '" + nodeName + "').hasNot('__canonicalType').order().valueMap(true)",
+			"gremlinQuery": "g.V().has('__configId', '" + dataSourceId + "').has('name', '" + nodeName + "').hasNot('__canonicalType').valueMap(true)",
 		}
 
 		if nodeName == "" {
 			rb = map[string]interface{}{
-				"gremlinQuery": "g.V().has('__configId', '" + dataSourceId + "').hasNot('__canonicalType').order().valueMap(true)",
+				"gremlinQuery": "g.V().has('__configId', '" + dataSourceId + "').hasNot('__canonicalType').valueMap(true)",
 			}
 		}
 
@@ -60,6 +60,8 @@ func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, allowNu
 		}
 
 		gremlinQueryResults = response.GremlinQueryResults
+		break
+
 	}
 
 	return gremlinQueryResults, nil
