@@ -22,17 +22,16 @@ resource "squaredup_datasource" "sample_data_source" {
   data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
-data "squaredup_nodes" "acommon_node" {
+data "squaredup_nodes" "acommon_node_by_name" {
   depends_on     = [squaredup_datasource.sample_data_source]
   data_source_id = squaredup_datasource.sample_data_source.id
   node_name      = "account-common-lambda"
 }
 
-data "squaredup_nodes" "s3_node" {
+data "squaredup_nodes" "acommon_node_by_id" {
   depends_on     = [squaredup_datasource.sample_data_source]
   data_source_id = squaredup_datasource.sample_data_source.id
-  node_name      = "account-common-s3"
-  allow_no_data  = true
+  node_source_id = "sample-server-2"
 }
 ```
 
@@ -47,6 +46,7 @@ data "squaredup_nodes" "s3_node" {
 
 - `allow_no_data` (Boolean) If true, the data source will return an empty list if its unable to find the node.
 - `node_name` (String) Node Name
+- `node_source_id` (String) Node Source ID
 
 ### Read-Only
 
@@ -59,4 +59,6 @@ Read-Only:
 
 - `display_name` (String)
 - `id` (String)
+- `source_id` (String)
 - `source_name` (String)
+- `type` (String)

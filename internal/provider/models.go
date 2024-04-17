@@ -72,6 +72,8 @@ type GremlinQueryResult struct {
 	ID          string   `json:"id"`
 	SourceName  []string `json:"sourceName"`
 	DisplayName []string `json:"name"`
+	SourceID    []string `json:"sourceId"`
+	Type        []string `json:"type"`
 }
 
 type DashboardShare struct {

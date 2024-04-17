@@ -26,6 +26,7 @@ type squaredupNodesResponse struct {
 	NodeProperties []squaredupNodesProperties `tfsdk:"node_properties"`
 	DataSourceID   types.String               `tfsdk:"data_source_id"`
 	NodeName       types.String               `tfsdk:"node_name"`
+	NodeSourceID   types.String               `tfsdk:"node_source_id"`
 	AllowNoData    types.Bool                 `tfsdk:"allow_no_data"`
 }
 
@@ -33,6 +34,8 @@ type squaredupNodesProperties struct {
 	ID          types.String `tfsdk:"id"`
 	SourceName  types.String `tfsdk:"source_name"`
 	DisplayName types.String `tfsdk:"display_name"`
+	SourceID    types.String `tfsdk:"source_id"`
+	Type        types.String `tfsdk:"type"`
 }
 
 func (d *squaredupNodes) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -50,6 +53,8 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 						"id":           schema.StringAttribute{Computed: true},
 						"source_name":  schema.StringAttribute{Computed: true},
 						"display_name": schema.StringAttribute{Computed: true},
+						"source_id":    schema.StringAttribute{Computed: true},
+						"type":         schema.StringAttribute{Computed: true},
 					},
 				},
 			},
@@ -59,6 +64,10 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 			},
 			"node_name": schema.StringAttribute{
 				Description: "Node Name",
+				Optional:    true,
+			},
+			"node_source_id": schema.StringAttribute{
+				Description: "Node Source ID",
 				Optional:    true,
 			},
 			"allow_no_data": schema.BoolAttribute{
@@ -93,7 +102,15 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	nodes, err := d.client.GetNodes(state.DataSourceID.ValueString(), state.NodeName.ValueString(), state.AllowNoData.ValueBool())
+	if state.NodeName.ValueString() != "" && state.NodeSourceID.ValueString() != "" {
+		resp.Diagnostics.AddError(
+			"Invalid Configuration",
+			"Both node_name and node_source_id cannot be used at the same time",
+		)
+		return
+	}
+
+	nodes, err := d.client.GetNodes(state.DataSourceID.ValueString(), state.NodeName.ValueString(), state.NodeSourceID.ValueString(), state.AllowNoData.ValueBool())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Retrieve Nodes",
@@ -108,6 +125,8 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 			ID:          types.StringValue(node.ID),
 			SourceName:  types.StringValue(node.SourceName[0]),
 			DisplayName: types.StringValue(node.DisplayName[0]),
+			SourceID:    types.StringValue(node.SourceID[0]),
+			Type:        types.StringValue(node.Type[0]),
 		}
 		NodeProperties = append(NodeProperties, nodeProperties)
 	}
