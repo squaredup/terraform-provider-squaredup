@@ -147,6 +147,7 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 		scopePayload, err = buildDynamicScope(plan)
 	case "advanced":
 		scopePayload, err = buildAdvancedScope(plan)
+		resp.Diagnostics.AddWarning("You are using advanced query, the UI may not be able to render the scope correctly!", "")
 	default:
 		err = fmt.Errorf("invalid scope type: %s", plan.ScopeType.ValueString())
 	}
