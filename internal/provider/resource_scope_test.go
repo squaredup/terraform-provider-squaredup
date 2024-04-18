@@ -82,11 +82,11 @@ resource "squaredup_scope" "dynamic_scope" {
 					resource.TestCheckResourceAttrSet("squaredup_scope.advanced_scope", "query"),
 					// Fixed Scope
 					resource.TestCheckResourceAttrSet("squaredup_scope.fixed_scope", "id"),
-					resource.TestCheckResourceAttrSet("squaredup_scope.fixed_scope", "node_ids"),
+					resource.TestCheckResourceAttr("squaredup_scope.fixed_scope", "node_ids.#", "2"),
 					// Dynamic Scope
 					resource.TestCheckResourceAttrSet("squaredup_scope.dynamic_scope", "id"),
-					resource.TestCheckResourceAttrSet("squaredup_scope.dynamic_scope", "data_source_id"),
-					resource.TestCheckResourceAttrSet("squaredup_scope.dynamic_scope", "types"),
+					resource.TestCheckResourceAttr("squaredup_scope.dynamic_scope", "data_source_id.#", "1"),
+					resource.TestCheckResourceAttr("squaredup_scope.dynamic_scope", "types.#", "1"),
 				),
 			},
 			// Import Test
