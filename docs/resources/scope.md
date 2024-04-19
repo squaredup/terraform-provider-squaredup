@@ -92,6 +92,6 @@ resource "squaredup_scope" "dynamic_scope" {
 Import is supported using the following syntax:
 
 ```shell
-# Scopes can be imported by specifying scopes id.
-terraform import squaredup_scope.example scope-123
+# Scopes can be imported by specifying workspace id and scope id
+terraform import squaredup_scope.example space-123,scope-123
 ```
