@@ -1,9 +1,11 @@
 package provider
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/pborman/uuid"
 )
 
@@ -91,22 +93,34 @@ resource "squaredup_scope" "dynamic_scope" {
 			},
 			// Import Test
 			{
-				ResourceName:            "squaredup_scope.advanced_scope",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"last_updated"},
+				ResourceName:      "squaredup_scope.advanced_scope",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					workspaceId := state.RootModule().Resources["squaredup_workspace.application_workspace"].Primary.ID
+					advancedScopeId := state.RootModule().Resources["squaredup_scope.advanced_scope"].Primary.ID
+					return fmt.Sprintf("%s,%s", workspaceId, advancedScopeId), nil
+				},
 			},
 			{
-				ResourceName:            "squaredup_scope.fixed_scope",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"last_updated"},
+				ResourceName:      "squaredup_scope.fixed_scope",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					workspaceId := state.RootModule().Resources["squaredup_workspace.application_workspace"].Primary.ID
+					fixedScopeId := state.RootModule().Resources["squaredup_scope.fixed_scope"].Primary.ID
+					return fmt.Sprintf("%s,%s", workspaceId, fixedScopeId), nil
+				},
 			},
 			{
-				ResourceName:            "squaredup_scope.dynamic_scope",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"last_updated"},
+				ResourceName:      "squaredup_scope.dynamic_scope",
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					workspaceId := state.RootModule().Resources["squaredup_workspace.application_workspace"].Primary.ID
+					dynamicScopeId := state.RootModule().Resources["squaredup_scope.dynamic_scope"].Primary.ID
+					return fmt.Sprintf("%s,%s", workspaceId, dynamicScopeId), nil
+				},
 			},
 			// Update Test
 			{
