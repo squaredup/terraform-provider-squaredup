@@ -38,7 +38,7 @@ func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, nodeSou
 			return nil, err
 		}
 
-		req, err := http.NewRequest("POST", c.baseURL+"/api/query", strings.NewReader(string(reqBody)))
+		req, err := http.NewRequest("POST", c.baseURL+"/api/graph/query", strings.NewReader(string(reqBody)))
 		if err != nil {
 			return nil, err
 		}

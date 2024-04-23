@@ -61,6 +61,10 @@ func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
 
 	req.Header.Add("User-Agent", fmt.Sprintf("SquaredUp-Terraform-Provider/%s", c.version))
 
+	if req.Body != nil {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
