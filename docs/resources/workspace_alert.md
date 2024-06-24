@@ -225,6 +225,7 @@ resource "squaredup_workspace_alert" "example" {
 ### Read-Only
 
 - `id` (String) The ID of the workspace
+- `last_updated` (String) The timestamp of the last update
 
 <a id="nestedatt--alerting_rules"></a>
 ### Nested Schema for `alerting_rules`

@@ -51,7 +51,7 @@ func (r *ScopeResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SquaredUp Scope",
+		Description: "A collection (previously known as scope) contains objects indexed by data sources. A collection can be used as a filter when configuring dashboards and tiles.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "ID of the scope",

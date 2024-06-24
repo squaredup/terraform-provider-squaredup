@@ -3,12 +3,12 @@
 page_title: "squaredup_scope Resource - terraform-provider-squaredup"
 subcategory: ""
 description: |-
-  SquaredUp Scope
+  A collection (previously known as scope) contains objects indexed by data sources. A collection can be used as a filter when configuring dashboards and tiles.
 ---
 
 # squaredup_scope (Resource)
 
-SquaredUp Scope
+A collection (previously known as scope) contains objects indexed by data sources. A collection can be used as a filter when configuring dashboards and tiles.
 
 ## Example Usage
 
