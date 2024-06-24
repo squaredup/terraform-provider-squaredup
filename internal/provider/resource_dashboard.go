@@ -226,6 +226,7 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 		DashboardContent:  state.DashboardContent,
 		Timeframe:         types.StringValue(dashboard.Timeframe),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
+		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &state)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -35,6 +36,7 @@ type workspaceAlerts struct {
 	WorkspaceID   types.String     `tfsdk:"workspace_id"`
 	AlertingRules []workspaceAlert `tfsdk:"alerting_rules"`
 	ID            types.String     `tfsdk:"id"`
+	LastUpdated   types.String     `tfsdk:"last_updated"`
 }
 
 type workspaceAlert struct {
@@ -112,6 +114,10 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"last_updated": schema.StringAttribute{
+				Description: "The timestamp of the last update",
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -142,7 +148,7 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	payload, err, warning := constructPayload(plan)
+	payload, warning, err := constructPayload(plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing JSON", err.Error())
 		return
@@ -159,6 +165,7 @@ func (r *workspaceAlertResource) Create(ctx context.Context, req resource.Create
 	}
 
 	plan.ID = types.StringValue(plan.WorkspaceID.ValueString())
+	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -192,6 +199,7 @@ func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequ
 		WorkspaceID:   state.ID,
 		AlertingRules: alertingRules,
 		ID:            state.ID,
+		LastUpdated:   types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &updatedState)
@@ -209,7 +217,7 @@ func (r *workspaceAlertResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	payload, err, warning := constructPayload(plan)
+	payload, warning, err := constructPayload(plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing JSON", err.Error())
 		return
@@ -226,6 +234,7 @@ func (r *workspaceAlertResource) Update(ctx context.Context, req resource.Update
 	}
 
 	plan.ID = types.StringValue(plan.WorkspaceID.ValueString())
+	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -257,7 +266,7 @@ func (r *workspaceAlertResource) ImportState(ctx context.Context, req resource.I
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, string) {
+func constructPayload(plan workspaceAlerts) (map[string]interface{}, string, error) {
 	var result WorkspaceAlertsData
 	var warning string
 
@@ -311,15 +320,15 @@ func constructPayload(plan workspaceAlerts) (map[string]interface{}, error, stri
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
-		return nil, err, ""
+		return nil, "", err
 	}
 
 	var jsonDataMap map[string]interface{}
 	if err := json.Unmarshal(jsonData, &jsonDataMap); err != nil {
-		return nil, err, ""
+		return nil, "", err
 	}
 
-	return jsonDataMap, nil, warning
+	return jsonDataMap, warning, nil
 }
 
 func determineNotifyOn(monitors AlertMonitors) (string, error) {
