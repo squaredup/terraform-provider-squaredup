@@ -40,7 +40,6 @@ type squaredupDashboard struct {
 	TemplateBindings  jsontypes.Normalized `tfsdk:"template_bindings"`
 	DashboardContent  jsontypes.Normalized `tfsdk:"dashboard_content"`
 	Timeframe         types.String         `tfsdk:"timeframe"`
-	Name              types.String         `tfsdk:"name"`
 	SchemaVersion     types.String         `tfsdk:"schema_version"`
 	LastUpdated       types.String         `tfsdk:"last_updated"`
 }
@@ -100,10 +99,6 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"lastQuarter",
 					"lastYear",
 				)},
-			},
-			"name": schema.StringAttribute{
-				Description: "The name of the dashboard",
-				Computed:    true,
 			},
 			"schema_version": schema.StringAttribute{
 				Description: "The schema version of the dashboard",
@@ -193,7 +188,6 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
 	}
@@ -231,7 +225,6 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 		TemplateBindings:  state.TemplateBindings,
 		DashboardContent:  state.DashboardContent,
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 	}
 
@@ -300,7 +293,6 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		TemplateBindings:  plan.TemplateBindings,
 		DashboardContent:  jsontypes.NewNormalizedValue(updatedDashboard),
 		Timeframe:         types.StringValue(dashboard.Timeframe),
-		Name:              types.StringValue(dashboard.Name),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
 	}
