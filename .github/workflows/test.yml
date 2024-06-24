@@ -61,6 +61,7 @@ jobs:
         # list whatever Terraform versions here you would like to support
         terraform:
           - '1.6.*'
+          - '1.7.*'
           - latest
     steps:
       - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
