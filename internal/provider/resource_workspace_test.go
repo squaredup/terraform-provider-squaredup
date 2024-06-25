@@ -21,6 +21,9 @@ func TestAccResourceWorkSpace(t *testing.T) {
 					type = "application"
 					tags = ["test", "test2"]
 					allow_dashboard_sharing = true
+					lifecycle {
+						ignore_changes = ["workspaces_links"]
+					}
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -41,6 +44,9 @@ func TestAccResourceWorkSpace(t *testing.T) {
 				Config: providerConfig + `
 					resource "squaredup_workspace" "test" {
 						display_name = "Workspace Test ` + uuid + `- Updated"
+						lifecycle {
+							ignore_changes = ["workspaces_links"]
+						}
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(

@@ -59,7 +59,6 @@ type Dashboard struct {
 	WorkspaceID   string               `json:"workspaceId"`
 	ID            string               `json:"id"`
 	Content       jsontypes.Normalized `json:"content"`
-	Name          string               `json:"name"`
 	SchemaVersion string               `json:"schemaVersion"`
 	Timeframe     string               `json:"timeframe,omitempty"`
 }

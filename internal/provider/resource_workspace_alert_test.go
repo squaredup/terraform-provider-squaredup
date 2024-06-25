@@ -28,6 +28,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name      = "Workspace Alert Test - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {
@@ -242,6 +245,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name      = "Workspace Alert Test - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {

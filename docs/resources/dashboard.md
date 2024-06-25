@@ -237,7 +237,6 @@ EOT
 - `dashboard_content` (String) The content of the dashboard. This is the rendered dashboard template with the template bindings applied.
 - `id` (String) The ID of the dashboard
 - `last_updated` (String) The last updated date of the dashboard
-- `name` (String) The name of the dashboard
 
 ## Import
 

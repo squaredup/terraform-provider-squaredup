@@ -171,6 +171,7 @@ func (r *dataSourceResource) Read(ctx context.Context, req resource.ReadRequest,
 	state.Name = types.StringValue(readDataSource.Plugin.Name)
 	state.AgentGroupID = types.StringValue(readDataSource.AgentGroupID)
 	state.ID = types.StringValue(readDataSource.ID)
+	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	if state.Config.ValueString() != "" {
 		state.Config = types.StringValue(state.Config.ValueString())

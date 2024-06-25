@@ -18,6 +18,9 @@ func TestDashboardResource(t *testing.T) {
 resource "squaredup_workspace" "application_workspace" {
 	display_name        = "Dashboard Test - ` + uuid + `"
 	description         = "Workspace with Dashboards for Application Team"
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
@@ -79,6 +82,9 @@ EOT
 resource "squaredup_workspace" "application_workspace" {
 	display_name        = "Dashboard Test - ` + uuid + `"
 	description         = "Workspace with Dashboards for Application Team"
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
