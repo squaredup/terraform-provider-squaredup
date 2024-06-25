@@ -29,6 +29,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name      = "Application Team - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_scope" "advanced_scope" {
@@ -138,6 +141,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name      = "Application Team - ` + uuid + `"
 	description       = "Workspace with Dashboards for Application Team"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_scope" "advanced_scope" {

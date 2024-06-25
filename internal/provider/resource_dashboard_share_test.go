@@ -19,6 +19,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name        = "OA Test Workspace - ` + uuid + `"
 	description         = "Workspace with Dashboards for Application Team"
 	allow_dashboard_sharing = true
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
@@ -83,6 +86,9 @@ resource "squaredup_workspace" "application_workspace" {
 	display_name        = "OA Test Workspace - ` + uuid + `"
 	description         = "Workspace with Dashboards for Application Team"
 	allow_dashboard_sharing = true
+	lifecycle {
+    	ignore_changes = ["workspaces_links"]
+  	}
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
