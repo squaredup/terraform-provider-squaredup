@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -89,21 +88,21 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"datasources_links": schema.ListAttribute{
 				Description: "IDs of Data Sources to link to this workspace",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"workspaces_links": schema.ListAttribute{
 				Description: "IDs of Workspaces to link to this workspace",
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"allow_dashboard_sharing": schema.BoolAttribute{
 				Description: "Allow dashboards in this workspace to be shared",
@@ -318,24 +317,18 @@ func GenerateWorkspaceState(workspaceRead *WorkspaceRead) workspace {
 		for _, tag := range workspaceRead.Data.Properties.Tags {
 			workspace.Tags = append(workspace.Tags, types.StringValue(tag))
 		}
-	} else {
-		workspace.Tags = []types.String{}
 	}
 
 	if len(workspaceRead.Data.Links.Plugins) > 0 {
 		for _, plugin := range workspaceRead.Data.Links.Plugins {
 			workspace.DataSourcesLinks = append(workspace.DataSourcesLinks, types.StringValue(plugin))
 		}
-	} else {
-		workspace.DataSourcesLinks = []types.String{}
 	}
 
 	if len(workspaceRead.Data.Links.Workspaces) > 0 {
 		for _, workspaces := range workspaceRead.Data.Links.Workspaces {
 			workspace.WorkspacesLinks = append(workspace.WorkspacesLinks, types.StringValue(workspaces))
 		}
-	} else {
-		workspace.WorkspacesLinks = []types.String{}
 	}
 
 	return workspace
