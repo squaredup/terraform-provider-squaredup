@@ -13,8 +13,9 @@ const retryDelaySeconds = 30
 
 func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, nodeSourceId string, allowNull bool) ([]GremlinQueryResult, error) {
 	var gremlinQueryResults []GremlinQueryResult
+	var errMessage string
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		errMessage := fmt.Sprintf("no nodes found with name: %s in data source: %s. attempted to search for it %d times", nodeName, dataSourceId, attempt)
+		errMessage = fmt.Sprintf("no nodes found with name: %s in data source: %s. attempted to search for it %d times", nodeName, dataSourceId, attempt)
 		rb := map[string]interface{}{
 			"gremlinQuery": "g.V().has('__configId', '" + dataSourceId + "').has('name', '" + nodeName + "').hasNot('__canonicalType').valueMap(true)",
 		}
@@ -64,7 +65,7 @@ func (c *SquaredUpClient) GetNodes(dataSourceId string, nodeName string, nodeSou
 				continue
 			}
 			if !allowNull {
-				return nil, fmt.Errorf(errMessage)
+				return nil, fmt.Errorf("error: %s", errMessage)
 			}
 		}
 
