@@ -1,7 +1,8 @@
 module github.com/squaredup/terraform-provider-squaredup
 
-go 1.21.3
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.23.1
 
 require (
 	github.com/cbroglie/mustache v1.4.0
