@@ -48,13 +48,13 @@ func (p *squaredupProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"region": schema.StringAttribute{
 				MarkdownDescription: "Region of your SquaredUp instance. May also be set via the SQUAREDUP_REGION environment variable.",
-				Optional:    true,
-				Validators:  []validator.String{stringvalidator.RegexMatches(regexp.MustCompile(`^(us|eu|https://.*)$`), "Invalid region format. It must be either 'us', 'eu', or start with 'https://'")},
+				Optional:            true,
+				Validators:          []validator.String{stringvalidator.RegexMatches(regexp.MustCompile(`^(us|eu|https://.*)$`), "Invalid region format. It must be either 'us', 'eu', or start with 'https://'")},
 			},
 			"api_key": schema.StringAttribute{
 				MarkdownDescription: "API Key for SquaredUp API. May also be set via the SQUAREDUP_API_KEY environment variable.",
-				Optional:    true,
-				Sensitive:   true,
+				Optional:            true,
+				Sensitive:           true,
 			},
 		},
 	}
