@@ -43,8 +43,8 @@ func (d *squaredupAlertingChannelType) Schema(_ context.Context, req datasource.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"alerting_channel_types": schema.ListNestedAttribute{
-				Description: "Alerting Channel Types are used to configure alert notifications",
-				Computed:    true,
+				MarkdownDescription: "Alerting Channel Types are used to configure alert notifications",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"channel_id":              schema.StringAttribute{Computed: true},
@@ -56,8 +56,8 @@ func (d *squaredupAlertingChannelType) Schema(_ context.Context, req datasource.
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "Filter Alerting Channel Types by Display Name",
+				Optional:            true,
+				MarkdownDescription: "Filter Alerting Channel Types by Display Name",
 			},
 		},
 	}

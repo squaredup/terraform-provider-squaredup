@@ -40,11 +40,11 @@ func (d *squaredupLatestDataSource) Metadata(_ context.Context, req datasource.M
 
 func (d *squaredupLatestDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Data Sources are used to query third party APIs and SquaredUp visualizes the results",
+		MarkdownDescription: "Data Sources are used to query third party APIs and SquaredUp visualizes the results",
 		Attributes: map[string]schema.Attribute{
 			"data_source_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "The name of the data source. If not specified, all data sources will be returned.",
+				Optional:            true,
+				MarkdownDescription: "The name of the data source. If not specified, all data sources will be returned.",
 			},
 			"plugins": schema.ListNestedAttribute{
 				Computed: true,

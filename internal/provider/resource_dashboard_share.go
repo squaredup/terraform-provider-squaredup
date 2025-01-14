@@ -43,36 +43,36 @@ func (r *DashboardShareResource) Metadata(_ context.Context, req resource.Metada
 
 func (r *DashboardShareResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Enable sharing for a dashboard",
+		MarkdownDescription: "Enable sharing for a dashboard",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of the dashboard share",
-				Computed:    true,
+				MarkdownDescription: "The ID of the dashboard share",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"dashboard_id": schema.StringAttribute{
-				Description: "The ID of the dashboard to share",
-				Required:    true,
+				MarkdownDescription: "The ID of the dashboard to share",
+				Required:            true,
 			},
 			"workspace_id": schema.StringAttribute{
-				Description: "The ID of the workspace where the dashboard is located",
-				Required:    true,
+				MarkdownDescription: "The ID of the workspace where the dashboard is located",
+				Required:            true,
 			},
 			"require_authentication": schema.BoolAttribute{
-				Description: "If false, the dashboard will be accessible to anyone with the link",
-				Required:    true,
+				MarkdownDescription: "If false, the dashboard will be accessible to anyone with the link",
+				Required:            true,
 			},
 			"enabled": schema.BoolAttribute{
-				Description: "If false, sharing of the dashboard is disabled",
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(true),
+				MarkdownDescription: "If false, sharing of the dashboard is disabled",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last time the Dashboard Share was updated",
-				Computed:    true,
+				MarkdownDescription: "The last time the Dashboard Share was updated",
+				Computed:            true,
 			},
 		},
 	}
