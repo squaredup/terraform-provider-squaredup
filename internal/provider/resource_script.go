@@ -44,34 +44,34 @@ func (r *ScriptResource) Metadata(_ context.Context, req resource.MetadataReques
 
 func (r *ScriptResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SquaredUp Script",
+		MarkdownDescription: "SquaredUp Script",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "ID of the script",
-				Computed:    true,
+				MarkdownDescription: "ID of the script",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description: "Display name for the script",
-				Required:    true,
+				MarkdownDescription: "Display name for the script",
+				Required:            true,
 			},
 			"script_type": schema.StringAttribute{
-				Description: "Type of script. Must be one of: tileDataJS, monitorConditionJS",
-				Required:    true,
+				MarkdownDescription: "Type of script. Must be one of: tileDataJS, monitorConditionJS",
+				Required:            true,
 				Validators: []validator.String{stringvalidator.OneOf(
 					"tileDataJS",
 					"monitorConditionJS",
 				)},
 			},
 			"script": schema.StringAttribute{
-				Description: "Contents of the script",
-				Required:    true,
+				MarkdownDescription: "Contents of the script",
+				Required:            true,
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last updated date of the script",
-				Computed:    true,
+				MarkdownDescription: "The last updated date of the script",
+				Computed:            true,
 			},
 		},
 	}

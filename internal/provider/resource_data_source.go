@@ -44,37 +44,37 @@ type dataSource struct {
 
 func (r *dataSourceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Data Sources are used to query third party APIs and SquaredUp visualizes the results",
+		MarkdownDescription: "Data Sources are used to query third party APIs and SquaredUp visualizes the results",
 		Attributes: map[string]schema.Attribute{
 			"display_name": schema.StringAttribute{
-				Description: "The display name of the data source (Displayed in SquaredUp)",
-				Required:    true,
+				MarkdownDescription: "The display name of the data source (Displayed in SquaredUp)",
+				Required:            true,
 			},
 			"id": schema.StringAttribute{
-				Description: "The ID of the data source",
-				Computed:    true,
+				MarkdownDescription: "The ID of the data source",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"data_source_name": schema.StringAttribute{
-				Description: "Display name of the data source",
-				Required:    true,
+				MarkdownDescription: "Display name of the data source",
+				Required:            true,
 			},
 			"config": schema.StringAttribute{
-				Description: "Sensitive configuration for the data source. Needs to be a valid JSON",
-				Optional:    true,
-				CustomType:  basetypes.StringType{},
-				Sensitive:   true,
+				MarkdownDescription: "Sensitive configuration for the data source. Needs to be a valid JSON",
+				Optional:            true,
+				CustomType:          basetypes.StringType{},
+				Sensitive:           true,
 			},
 			"agent_group_id": schema.StringAttribute{
-				Description: "The ID of the agent group to which the data source should connect to (on-prem data sources only)",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "The ID of the agent group to which the data source should connect to (on-prem data sources only)",
+				Optional:            true,
+				Computed:            true,
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last time the data source was updated",
-				Computed:    true,
+				MarkdownDescription: "The last time the data source was updated",
+				Computed:            true,
 			},
 		},
 	}

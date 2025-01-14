@@ -50,42 +50,42 @@ func (r *DashboardResource) Metadata(_ context.Context, req resource.MetadataReq
 
 func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Dashboard are used to visualize data from Data Sources",
+		MarkdownDescription: "Dashboard are used to visualize data from Data Sources",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of the dashboard",
-				Computed:    true,
+				MarkdownDescription: "The ID of the dashboard",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description: "The display name of the dashboard",
-				Required:    true,
+				MarkdownDescription: "The display name of the dashboard",
+				Required:            true,
 			},
 			"workspace_id": schema.StringAttribute{
-				Description: "The ID of the workspace where the dashboard is located",
-				Required:    true,
+				MarkdownDescription: "The ID of the workspace where the dashboard is located",
+				Required:            true,
 			},
 			"dashboard_template": schema.StringAttribute{
-				Description: "Dashboard template to use for the dashboard",
-				Required:    true,
+				MarkdownDescription: "Dashboard template to use for the dashboard",
+				Required:            true,
 			},
 			"template_bindings": schema.StringAttribute{
-				Description: "Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.",
-				Optional:    true,
-				Computed:    true,
-				CustomType:  jsontypes.NormalizedType{},
+				MarkdownDescription: "Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.NormalizedType{},
 			},
 			"dashboard_content": schema.StringAttribute{
-				Description: "The content of the dashboard. This is the rendered dashboard template with the template bindings applied.",
-				Computed:    true,
-				CustomType:  jsontypes.NormalizedType{},
+				MarkdownDescription: "The content of the dashboard. This is the rendered dashboard template with the template bindings applied.",
+				Computed:            true,
+				CustomType:          jsontypes.NormalizedType{},
 			},
 			"timeframe": schema.StringAttribute{
-				Description: "The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear",
+				Optional:            true,
+				Computed:            true,
 				Validators: []validator.String{stringvalidator.OneOf(
 					"last1hour",
 					"last12hours",
@@ -101,13 +101,13 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				)},
 			},
 			"schema_version": schema.StringAttribute{
-				Description: "The schema version of the dashboard",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "The schema version of the dashboard",
+				Optional:            true,
+				Computed:            true,
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last updated date of the dashboard",
-				Computed:    true,
+				MarkdownDescription: "The last updated date of the dashboard",
+				Computed:            true,
 			},
 		},
 	}

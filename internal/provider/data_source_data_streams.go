@@ -43,8 +43,8 @@ func (d *squaredupDataStream) Schema(_ context.Context, req datasource.SchemaReq
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"data_streams": schema.ListNestedAttribute{
-				Description: "Data Streams are used to query third party APIs and SquaredUp visualizes the results",
-				Computed:    true,
+				MarkdownDescription: "Data Streams are used to query third party APIs and SquaredUp visualizes the results",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"display_name":     schema.StringAttribute{Computed: true},
@@ -55,12 +55,12 @@ func (d *squaredupDataStream) Schema(_ context.Context, req datasource.SchemaReq
 				},
 			},
 			"data_source_id": schema.StringAttribute{
-				Required:    true,
-				Description: "ID of the data source to get data streams for",
+				Required:            true,
+				MarkdownDescription: "ID of the data source to get data streams for",
 			},
 			"data_stream_definition_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "Name of the data stream definition to get particular data stream details",
+				Optional:            true,
+				MarkdownDescription: "Name of the data stream definition to get particular data stream details",
 			},
 		},
 	}

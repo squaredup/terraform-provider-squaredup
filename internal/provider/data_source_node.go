@@ -46,8 +46,8 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"node_properties": schema.ListNestedAttribute{
-				Description: "Node Properties",
-				Computed:    true,
+				MarkdownDescription: "Node Properties",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id":           schema.StringAttribute{Computed: true},
@@ -59,20 +59,20 @@ func (d *squaredupNodes) Schema(_ context.Context, req datasource.SchemaRequest,
 				},
 			},
 			"data_source_id": schema.StringAttribute{
-				Description: "Data Source ID",
-				Required:    true,
+				MarkdownDescription: "Data Source ID",
+				Required:            true,
 			},
 			"node_name": schema.StringAttribute{
-				Description: "Node Name",
-				Optional:    true,
+				MarkdownDescription: "Node Name",
+				Optional:            true,
 			},
 			"node_source_id": schema.StringAttribute{
-				Description: "Node Source ID",
-				Optional:    true,
+				MarkdownDescription: "Node Source ID",
+				Optional:            true,
 			},
 			"allow_no_data": schema.BoolAttribute{
-				Description: "If true, the data source will return an empty list if its unable to find the node.",
-				Optional:    true,
+				MarkdownDescription: "If true, the data source will return an empty list if its unable to find the node.",
+				Optional:            true,
 			},
 		},
 	}

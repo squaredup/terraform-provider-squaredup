@@ -51,22 +51,22 @@ func (r *ScopeResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "A collection (previously known as scope) contains objects indexed by data sources. A collection can be used as a filter when configuring dashboards and tiles.",
+		MarkdownDescription: "A collection (previously known as scope) contains objects indexed by data sources. A collection can be used as a filter when configuring dashboards and tiles.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "ID of the scope",
-				Computed:    true,
+				MarkdownDescription: "ID of the scope",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description: "Display name for the scope",
-				Required:    true,
+				MarkdownDescription: "Display name for the scope",
+				Required:            true,
 			},
 			"scope_type": schema.StringAttribute{
-				Description: "Type of the scope. Either 'dynamic' or 'fixed'",
-				Required:    true,
+				MarkdownDescription: "Type of the scope. Either 'dynamic' or 'fixed'",
+				Required:            true,
 				Validators: []validator.String{stringvalidator.OneOf(
 					"dynamic",
 					"fixed",
@@ -74,39 +74,39 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				)},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "Last updated timestamp",
-				Computed:    true,
+				MarkdownDescription: "Last updated timestamp",
+				Computed:            true,
 			},
 			"workspace_id": schema.StringAttribute{
-				Description: "ID of the workspace",
-				Required:    true,
+				MarkdownDescription: "ID of the workspace",
+				Required:            true,
 			},
 			"data_source_id": schema.ListAttribute{
-				Description: "IDs of the data sources to filter the scope",
-				Optional:    true,
-				ElementType: types.StringType,
+				MarkdownDescription: "IDs of the data sources to filter the scope",
+				Optional:            true,
+				ElementType:         types.StringType,
 			},
 			"types": schema.ListAttribute{
-				Description: "Node types to filter the scope",
-				Optional:    true,
-				ElementType: types.StringType,
+				MarkdownDescription: "Node types to filter the scope",
+				Optional:            true,
+				ElementType:         types.StringType,
 			},
 			"search_query": schema.StringAttribute{
-				Description: "Search query",
-				Optional:    true,
+				MarkdownDescription: "Search query",
+				Optional:            true,
 			},
 			"advanced_query": schema.StringAttribute{
-				Description: "Advanced query (Gremlin)",
-				Optional:    true,
+				MarkdownDescription: "Advanced query (Gremlin)",
+				Optional:            true,
 			},
 			"node_ids": schema.ListAttribute{
-				Description: "IDs of the nodes that scope will contain",
-				Optional:    true,
-				ElementType: types.StringType,
+				MarkdownDescription: "IDs of the nodes that scope will contain",
+				Optional:            true,
+				ElementType:         types.StringType,
 			},
 			"query": schema.StringAttribute{
-				Description: "Query for the scope",
-				Computed:    true,
+				MarkdownDescription: "Query for the scope",
+				Computed:            true,
 			},
 		},
 	}

@@ -49,22 +49,22 @@ func (r *workspaceResource) Metadata(_ context.Context, req resource.MetadataReq
 
 func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Each workspace has its own dashboards, data sources, monitors and scopes",
+		MarkdownDescription: "Each workspace has its own dashboards, data sources, monitors and scopes",
 		Attributes: map[string]schema.Attribute{
 			"display_name": schema.StringAttribute{
-				Description: "Display name for the workspace",
-				Required:    true,
+				MarkdownDescription: "Display name for the workspace",
+				Required:            true,
 			},
 
 			"description": schema.StringAttribute{
-				Description: "Description for the workspace",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "Description for the workspace",
+				Optional:            true,
+				Computed:            true,
 			},
 			"type": schema.StringAttribute{
-				Description: "Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.",
+				Optional:            true,
+				Computed:            true,
 				Validators: []validator.String{stringvalidator.OneOf(
 					"service",
 					"team",
@@ -84,41 +84,41 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Default: stringdefault.StaticString(""),
 			},
 			"tags": schema.ListAttribute{
-				Description: "Tags for the workspace",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
+				MarkdownDescription: "Tags for the workspace",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"datasources_links": schema.ListAttribute{
-				Description: "IDs of Data Sources to link to this workspace",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
+				MarkdownDescription: "IDs of Data Sources to link to this workspace",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"workspaces_links": schema.ListAttribute{
-				Description: "IDs of Workspaces to link to this workspace",
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
-				Default:     listdefault.StaticValue(types.ListNull(types.StringType)),
+				MarkdownDescription: "IDs of Workspaces to link to this workspace",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
 			},
 			"allow_dashboard_sharing": schema.BoolAttribute{
-				Description: "Allow dashboards in this workspace to be shared",
-				Optional:    true,
-				Computed:    true,
+				MarkdownDescription: "Allow dashboards in this workspace to be shared",
+				Optional:            true,
+				Computed:            true,
 			},
 			"id": schema.StringAttribute{
-				Description: "The ID of the workspace",
-				Computed:    true,
+				MarkdownDescription: "The ID of the workspace",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last time the workspace was updated",
-				Computed:    true,
+				MarkdownDescription: "The last time the workspace was updated",
+				Computed:            true,
 			},
 		},
 	}

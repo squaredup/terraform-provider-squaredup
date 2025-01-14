@@ -57,30 +57,30 @@ func (r *workspaceAlertResource) Metadata(_ context.Context, req resource.Metada
 
 func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SquaredUp Workspace Alert",
+		MarkdownDescription: "SquaredUp Workspace Alert",
 		Attributes: map[string]schema.Attribute{
 			"workspace_id": schema.StringAttribute{
-				Description: "The ID of the workspace to create the alert in",
-				Required:    true,
+				MarkdownDescription: "The ID of the workspace to create the alert in",
+				Required:            true,
 			},
 			"alerting_rules": schema.ListNestedAttribute{
-				Description: "The alerting rules to create",
-				Required:    true,
+				MarkdownDescription: "The alerting rules to create",
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"channel": schema.StringAttribute{
-							Description: "The ID of the channel to send the alert to",
-							Required:    true,
+							MarkdownDescription: "The ID of the channel to send the alert to",
+							Required:            true,
 						},
 						"preview_image": schema.BoolAttribute{
-							Description: "Whether to include a preview image in the alert",
-							Default:     booldefault.StaticBool(false),
-							Optional:    true,
-							Computed:    true,
+							MarkdownDescription: "Whether to include a preview image in the alert",
+							Default:             booldefault.StaticBool(false),
+							Optional:            true,
+							Computed:            true,
 						},
 						"notify_on": schema.StringAttribute{
-							Description: "Condition to trigger the alert. Must be one of: 'workspace_state', 'all_monitors', or 'selected_monitors'",
-							Required:    true,
+							MarkdownDescription: "Condition to trigger the alert. Must be one of: 'workspace_state', 'all_monitors', or 'selected_monitors'",
+							Required:            true,
 							Validators: []validator.String{stringvalidator.OneOf(
 								"workspace_state",
 								"all_monitors",
@@ -88,18 +88,18 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 							)},
 						},
 						"selected_monitors": schema.ListNestedAttribute{
-							Description: "The monitors to trigger the alert on. Required if notify_on is 'selected_monitors'",
-							Optional:    true,
+							MarkdownDescription: "The monitors to trigger the alert on. Required if notify_on is 'selected_monitors'",
+							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"dashboard_id": schema.StringAttribute{
-										Description: "The ID of the dashboard where the monitor is configured",
-										Required:    true,
+										MarkdownDescription: "The ID of the dashboard where the monitor is configured",
+										Required:            true,
 									},
 									"tiles_id": schema.ListAttribute{
-										Description: "The ID of the tiles to trigger the alert on",
-										Required:    true,
-										ElementType: types.StringType,
+										MarkdownDescription: "The ID of the tiles to trigger the alert on",
+										Required:            true,
+										ElementType:         types.StringType,
 									},
 								},
 							},
@@ -108,15 +108,15 @@ func (r *workspaceAlertResource) Schema(_ context.Context, req resource.SchemaRe
 				},
 			},
 			"id": schema.StringAttribute{
-				Description: "The ID of the workspace",
-				Computed:    true,
+				MarkdownDescription: "The ID of the workspace",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The timestamp of the last update",
-				Computed:    true,
+				MarkdownDescription: "The timestamp of the last update",
+				Computed:            true,
 			},
 		},
 	}

@@ -45,42 +45,42 @@ func (r *AlertingChannelResource) Metadata(_ context.Context, req resource.Metad
 
 func (r *AlertingChannelResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "SquaredUp Alerting Channel",
+		MarkdownDescription: "SquaredUp Alerting Channel",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of the alerting channel",
-				Computed:    true,
+				MarkdownDescription: "The ID of the alerting channel",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description: "The display name of the alerting channel",
-				Required:    true,
+				MarkdownDescription: "The display name of the alerting channel",
+				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				Description: "Description for the alerting channel",
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
+				MarkdownDescription: "Description for the alerting channel",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"channel_type_id": schema.StringAttribute{
-				Description: "The ID of the alerting channel type",
-				Required:    true,
+				MarkdownDescription: "The ID of the alerting channel type",
+				Required:            true,
 			},
 			"config": schema.StringAttribute{
-				Description: "The configuration of the alerting channel",
-				Required:    true,
-				CustomType:  jsontypes.NormalizedType{},
-				Sensitive:   true,
+				MarkdownDescription: "The configuration of the alerting channel",
+				Required:            true,
+				CustomType:          jsontypes.NormalizedType{},
+				Sensitive:           true,
 			},
 			"enabled": schema.BoolAttribute{
-				Description: "Whether the alerting channel is enabled",
-				Required:    true,
+				MarkdownDescription: "Whether the alerting channel is enabled",
+				Required:            true,
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "The last updated time of the alerting channel",
-				Computed:    true,
+				MarkdownDescription: "The last updated time of the alerting channel",
+				Computed:            true,
 			},
 		},
 	}
