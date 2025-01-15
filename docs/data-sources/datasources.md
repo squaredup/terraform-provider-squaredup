@@ -24,6 +24,7 @@ data "squaredup_datasources" "sample_data" {
 ### Optional
 
 - `data_source_name` (String) The name of the data source. If not specified, all data sources will be returned.
+- `on_prem` (Boolean) If true, only on-prem data sources will be returned.
 
 ### Read-Only
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string) ([]LatestDataSource, error) {
+func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string, onPrem *bool) ([]LatestDataSource, error) {
 	req, err := http.NewRequest("GET", c.baseURL+"/api/plugins/latest", nil)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,22 @@ func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string) ([]Late
 		}
 
 		if len(filteredPlugins) == 0 {
-			return nil, fmt.Errorf("No plugins found with display name: %s", filterDisplayName)
+			return nil, fmt.Errorf("no plugins found with display name: %s", filterDisplayName)
+		}
+
+		return filteredPlugins, nil
+	}
+
+	if *onPrem {
+		filteredPlugins := []LatestDataSource{}
+		for _, plugin := range plugins {
+			if plugin.OnPrem {
+				filteredPlugins = append(filteredPlugins, plugin)
+			}
+		}
+
+		if len(filteredPlugins) == 0 {
+			return nil, fmt.Errorf("no on-prem plugins found")
 		}
 
 		return filteredPlugins, nil
@@ -42,8 +57,8 @@ func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string) ([]Late
 	return plugins, nil
 }
 
-func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) (map[string]interface{}, error) {
-	plugins, err := c.GetLatestDataSources(name)
+func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name string, onPrem *bool, pluginConfig map[string]interface{}, agentGroupId string) (map[string]interface{}, error) {
+	plugins, err := c.GetLatestDataSources(name, onPrem)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +94,8 @@ func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name str
 	return DataSourcePayload, nil
 }
 
-func (c *SquaredUpClient) AddDataSource(displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) (*DataSource, error) {
-	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, agentGroupId)
+func (c *SquaredUpClient) AddDataSource(displayName string, name string, onPrem *bool, pluginConfig map[string]interface{}, agentGroupId string) (*DataSource, error) {
+	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, onPrem, pluginConfig, agentGroupId)
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +144,8 @@ func (c *SquaredUpClient) GetDataSource(dataSourceId string) (*DataSource, error
 	return &dataSource, nil
 }
 
-func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName string, name string, pluginConfig map[string]interface{}, agentGroupId string) error {
-	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, pluginConfig, agentGroupId)
+func (c *SquaredUpClient) UpdateDataSource(dataSourceId string, displayName string, name string, onPrem *bool, pluginConfig map[string]interface{}, agentGroupId string) error {
+	DataSourcePayload, err := c.GenerateDataSourcePayload(displayName, name, onPrem, pluginConfig, agentGroupId)
 	if err != nil {
 		return err
 	}
