@@ -140,7 +140,7 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 
 	state := dataSource{
 		DisplayName:  types.StringValue(newDataSource.DisplayName),
-		OnPrem:       types.BoolPointerValue(plan.OnPrem.ValueBoolPointer()),
+		OnPrem:       types.BoolPointerValue(&newDataSource.Plugin.OnPrem),
 		Name:         types.StringValue(newDataSource.Plugin.Name),
 		AgentGroupID: types.StringValue(newDataSource.AgentGroupID),
 		ID:           types.StringValue(newDataSource.ID),
@@ -176,6 +176,7 @@ func (r *dataSourceResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	state.DisplayName = types.StringValue(readDataSource.DisplayName)
+	state.OnPrem = types.BoolValue(readDataSource.Plugin.OnPrem)
 	state.Name = types.StringValue(readDataSource.Plugin.Name)
 	state.AgentGroupID = types.StringValue(readDataSource.AgentGroupID)
 	state.ID = types.StringValue(readDataSource.ID)
@@ -245,7 +246,7 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	state = dataSource{
 		DisplayName:  types.StringValue(getDataSource.DisplayName),
-		OnPrem:       types.BoolPointerValue(plan.OnPrem.ValueBoolPointer()),
+		OnPrem:       types.BoolPointerValue(&getDataSource.Plugin.OnPrem),
 		Name:         types.StringValue(getDataSource.Plugin.Name),
 		AgentGroupID: types.StringValue(getDataSource.AgentGroupID),
 		ID:           types.StringValue(getDataSource.ID),

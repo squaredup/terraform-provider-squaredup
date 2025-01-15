@@ -14,7 +14,8 @@ type DataSource struct {
 	DisplayName string `json:"displayName"`
 	ID          string `json:"id,omitempty"`
 	Plugin      struct {
-		Name string `json:"name"`
+		Name   string `json:"name"`
+		OnPrem bool   `json:"onPrem"`
 	} `json:"plugin"`
 	AgentGroupID string `json:"agentGroupId,omitempty"`
 }
