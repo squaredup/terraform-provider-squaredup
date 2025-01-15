@@ -24,37 +24,25 @@ func (c *SquaredUpClient) GetLatestDataSources(filterDisplayName string, onPrem 
 		return nil, err
 	}
 
-	if filterDisplayName != "" {
-		filteredPlugins := []LatestDataSource{}
-		for _, plugin := range plugins {
-			if plugin.DisplayName == filterDisplayName {
-				filteredPlugins = append(filteredPlugins, plugin)
-			}
+	filteredPlugins := []LatestDataSource{}
+	for _, plugin := range plugins {
+		if filterDisplayName != "" && plugin.DisplayName != filterDisplayName {
+			continue
 		}
 
-		if len(filteredPlugins) == 0 {
-			return nil, fmt.Errorf("no plugins found with display name: %s", filterDisplayName)
+		if onPrem != nil && plugin.OnPrem != *onPrem {
+			continue
 		}
 
-		return filteredPlugins, nil
+		filteredPlugins = append(filteredPlugins, plugin)
 	}
 
-	if *onPrem {
-		filteredPlugins := []LatestDataSource{}
-		for _, plugin := range plugins {
-			if plugin.OnPrem {
-				filteredPlugins = append(filteredPlugins, plugin)
-			}
-		}
-
-		if len(filteredPlugins) == 0 {
-			return nil, fmt.Errorf("no on-prem plugins found")
-		}
-
-		return filteredPlugins, nil
+	if len(filteredPlugins) == 0 {
+		return nil, fmt.Errorf("no plugins found with the given filter")
 	}
 
-	return plugins, nil
+	return filteredPlugins, nil
+
 }
 
 func (c *SquaredUpClient) GenerateDataSourcePayload(displayName string, name string, onPrem *bool, pluginConfig map[string]interface{}, agentGroupId string) (map[string]interface{}, error) {
