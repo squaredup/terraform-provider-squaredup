@@ -44,6 +44,7 @@ resource "squaredup_datasource" "ado_datasource" {
 
 - `agent_group_id` (String) The ID of the agent group to which the data source should connect to (on-prem data sources only)
 - `config` (String, Sensitive) Sensitive configuration for the data source. Needs to be a valid JSON
+- `on_prem` (Boolean) Whether the data source is an on-prem data source
 
 ### Read-Only
 

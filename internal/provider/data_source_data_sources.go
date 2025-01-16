@@ -25,6 +25,7 @@ type squaredupLatestDataSource struct {
 type squaredupDataSourceModel struct {
 	Plugins        []squaredupPluginModel `tfsdk:"plugins"`
 	DataSourceName types.String           `tfsdk:"data_source_name"`
+	OnPrem         types.Bool             `tfsdk:"on_prem"`
 }
 
 type squaredupPluginModel struct {
@@ -45,6 +46,10 @@ func (d *squaredupLatestDataSource) Schema(_ context.Context, _ datasource.Schem
 			"data_source_name": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The name of the data source. If not specified, all data sources will be returned.",
+			},
+			"on_prem": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "If true, only on-prem data sources will be returned.",
 			},
 			"plugins": schema.ListNestedAttribute{
 				Computed: true,
@@ -70,7 +75,7 @@ func (d *squaredupLatestDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	plugins, err := d.client.GetLatestDataSources(state.DataSourceName.ValueString())
+	plugins, err := d.client.GetLatestDataSources(state.DataSourceName.ValueString(), state.OnPrem.ValueBoolPointer())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making API request to fetch latest Data Sources",

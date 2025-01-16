@@ -35,6 +35,7 @@ func (r *dataSourceResource) Metadata(_ context.Context, req resource.MetadataRe
 
 type dataSource struct {
 	DisplayName  types.String `tfsdk:"display_name"`
+	OnPrem       types.Bool   `tfsdk:"on_prem"`
 	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"data_source_name"`
 	Config       types.String `tfsdk:"config"`
@@ -60,6 +61,11 @@ func (r *dataSourceResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			"data_source_name": schema.StringAttribute{
 				MarkdownDescription: "Display name of the data source",
 				Required:            true,
+			},
+			"on_prem": schema.BoolAttribute{
+				MarkdownDescription: "Whether the data source is an on-prem data source",
+				Optional:            true,
+				Computed:            true,
 			},
 			"config": schema.StringAttribute{
 				MarkdownDescription: "Sensitive configuration for the data source. Needs to be a valid JSON",
@@ -120,6 +126,7 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 	newDataSource, err := r.client.AddDataSource(
 		plan.DisplayName.ValueString(),
 		plan.Name.ValueString(),
+		plan.OnPrem.ValueBoolPointer(),
 		plugin_config,
 		plan.AgentGroupID.ValueString(),
 	)
@@ -133,6 +140,7 @@ func (r *dataSourceResource) Create(ctx context.Context, req resource.CreateRequ
 
 	state := dataSource{
 		DisplayName:  types.StringValue(newDataSource.DisplayName),
+		OnPrem:       types.BoolPointerValue(&newDataSource.Plugin.OnPrem),
 		Name:         types.StringValue(newDataSource.Plugin.Name),
 		AgentGroupID: types.StringValue(newDataSource.AgentGroupID),
 		ID:           types.StringValue(newDataSource.ID),
@@ -168,6 +176,7 @@ func (r *dataSourceResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	state.DisplayName = types.StringValue(readDataSource.DisplayName)
+	state.OnPrem = types.BoolValue(readDataSource.Plugin.OnPrem)
 	state.Name = types.StringValue(readDataSource.Plugin.Name)
 	state.AgentGroupID = types.StringValue(readDataSource.AgentGroupID)
 	state.ID = types.StringValue(readDataSource.ID)
@@ -214,6 +223,7 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 		state.ID.ValueString(),
 		plan.DisplayName.ValueString(),
 		plan.Name.ValueString(),
+		plan.OnPrem.ValueBoolPointer(),
 		plugin_config,
 		plan.AgentGroupID.ValueString(),
 	)
@@ -236,6 +246,7 @@ func (r *dataSourceResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	state = dataSource{
 		DisplayName:  types.StringValue(getDataSource.DisplayName),
+		OnPrem:       types.BoolPointerValue(&getDataSource.Plugin.OnPrem),
 		Name:         types.StringValue(getDataSource.Plugin.Name),
 		AgentGroupID: types.StringValue(getDataSource.AgentGroupID),
 		ID:           types.StringValue(getDataSource.ID),

@@ -28,6 +28,7 @@ resource "squaredup_datasource" "sample_data_source" {
 					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "display_name", "Sample Data - DataSource Test - "+uuid),
 					resource.TestCheckResourceAttrSet("squaredup_datasource.sample_data_source", "id"),
 					resource.TestCheckResourceAttrSet("squaredup_datasource.sample_data_source", "last_updated"),
+					resource.TestCheckResourceAttr("squaredup_datasource.sample_data_source", "on_prem", "false"),
 				),
 			},
 			//Update DataSource Test
