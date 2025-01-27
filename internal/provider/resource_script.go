@@ -156,7 +156,6 @@ func (r *ScriptResource) Read(ctx context.Context, req resource.ReadRequest, res
 		DisplayName: types.StringValue(script.DisplayName),
 		ScriptType:  types.StringValue(strings.Split(script.SubType, ".")[1]),
 		Script:      types.StringValue(script.Config.Src),
-		LastUpdated: types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &state)

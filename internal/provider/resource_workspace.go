@@ -171,6 +171,7 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	workspace := GenerateWorkspaceState(readWorkspace)
+	workspace.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, workspace)
 	resp.Diagnostics.Append(diags...)
@@ -234,6 +235,7 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	workspace := GenerateWorkspaceState(readWorkspace)
+	workspace.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, workspace)
 	resp.Diagnostics.Append(diags...)
@@ -310,7 +312,6 @@ func GenerateWorkspaceState(workspaceRead *WorkspaceRead) workspace {
 		Description:             types.StringValue(workspaceRead.Data.Properties.Description),
 		Type:                    types.StringValue(workspaceRead.Data.Properties.Type),
 		DashboardSharingEnabled: types.BoolValue(workspaceRead.Data.Properties.DashboardSharingEnabled),
-		LastUpdated:             types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	if len(workspaceRead.Data.Properties.Tags) > 0 {
