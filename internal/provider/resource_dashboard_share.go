@@ -161,7 +161,6 @@ func (r *DashboardShareResource) Read(ctx context.Context, req resource.ReadRequ
 		WorkspaceID:           types.StringValue(sharedDashboard.WorkspaceID),
 		RequireAuthentication: types.BoolValue(sharedDashboard.Properties.RequireAuthentication),
 		EnableLink:            types.BoolValue(sharedDashboard.Properties.Enabled),
-		LastUpdated:           types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &state)

@@ -176,7 +176,6 @@ func (r *AlertingChannelResource) Read(ctx context.Context, req resource.ReadReq
 		ChannelTypeId: types.StringValue(alertingChannel.ChannelTypeID),
 		Config:        state.Config,
 		Enabled:       types.BoolValue(alertingChannel.Enabled),
-		LastUpdated:   types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &state)

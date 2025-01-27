@@ -199,7 +199,6 @@ func (r *workspaceAlertResource) Read(ctx context.Context, req resource.ReadRequ
 		WorkspaceID:   state.ID,
 		AlertingRules: alertingRules,
 		ID:            state.ID,
-		LastUpdated:   types.StringValue(time.Now().Format(time.RFC850)),
 	}
 
 	diags = resp.State.Set(ctx, &updatedState)

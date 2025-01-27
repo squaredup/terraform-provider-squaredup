@@ -170,6 +170,8 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	state := createState(plan, readScope)
+	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -238,6 +240,8 @@ func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	state := createState(plan, readScope)
+	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -420,7 +424,6 @@ func createState(plan SquaredUpScope, readScope *ScopeRead) SquaredUpScope {
 		ScopeID:     types.StringValue(readScope.ID),
 		DisplayName: types.StringValue(readScope.DisplayName),
 		ScopeType:   types.StringValue(plan.ScopeType.ValueString()),
-		LastUpdated: types.StringValue(time.Now().Format(time.RFC850)),
 		WorkspaceId: types.StringValue(readScope.WorkspaceID),
 		Query:       types.StringValue(readScope.Data.Query),
 	}
