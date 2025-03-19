@@ -50,6 +50,7 @@ resource "squaredup_workspace" "devops_workspace" {
 - `allow_dashboard_sharing` (Boolean) Allow dashboards in this workspace to be shared
 - `datasources_links` (List of String) IDs of Data Sources to link to this workspace
 - `description` (String) Description for the workspace
+- `read_workspaces_links` (List of String) IDs of Workspaces linked to this workspace
 - `tags` (List of String) Tags for the workspace
 - `type` (String) Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.
 - `workspaces_links` (List of String) IDs of Workspaces to link to this workspace
