@@ -23,18 +23,20 @@ resource "squaredup_datasource" "sample_data_source" {
 }
 
 resource "squaredup_workspace" "application_workspace" {
-  display_name = "Application Team"
-  description  = "Workspace with Dashboards for Application Team"
+  display_name            = "Application Team"
+  allow_dashboard_sharing = false
+  description             = "Workspace with Dashboards for Application Team"
 }
 
 resource "squaredup_workspace" "devops_workspace" {
-  display_name            = "DevOps Team"
-  description             = "Workspace with Dashboards for DevOps Team"
-  type                    = "application"
-  tags                    = ["terraform", "auto-created"]
-  allow_dashboard_sharing = true
-  workspaces_links        = [squaredup_workspace.application_workspace.id]
-  datasources_links       = [squaredup_datasource.sample_data_source.id]
+  display_name                     = "DevOps Team"
+  description                      = "Workspace with Dashboards for DevOps Team"
+  type                             = "application"
+  tags                             = ["terraform", "auto-created"]
+  allow_dashboard_sharing          = true
+  sharing_authorized_email_domains = ["example.com"] // allow_dashboard_sharing must be true
+  workspaces_links                 = [squaredup_workspace.application_workspace.id]
+  datasources_links                = [squaredup_datasource.sample_data_source.id]
 }
 ```
 
@@ -51,6 +53,7 @@ resource "squaredup_workspace" "devops_workspace" {
 - `datasources_links` (List of String) IDs of Data Sources to link to this workspace
 - `description` (String) Description for the workspace
 - `read_workspaces_links` (List of String) IDs of Workspaces linked to this workspace
+- `sharing_authorized_email_domains` (List of String) Email domains that are authorized to access share dashboards in this workspace
 - `tags` (List of String) Tags for the workspace
 - `type` (String) Workspace type that can be one of: 'service', 'team', 'application', 'platform', 'product', 'business service', 'microservice', 'customer', 'website', 'component', 'resource', 'system', 'folder', 'other'.
 - `workspaces_links` (List of String) IDs of Workspaces to link to this workspace

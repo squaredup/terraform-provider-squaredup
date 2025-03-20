@@ -43,6 +43,7 @@ type workspace struct {
 	DashboardSharingEnabled types.Bool   `tfsdk:"allow_dashboard_sharing"`
 	ID                      types.String `tfsdk:"id"`
 	LastUpdated             types.String `tfsdk:"last_updated"`
+	AuthorizedEmailDomains  types.List   `tfsdk:"sharing_authorized_email_domains"`
 }
 
 func (r *workspaceResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -90,21 +91,21 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 			},
 			"datasources_links": schema.ListAttribute{
 				MarkdownDescription: "IDs of Data Sources to link to this workspace",
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 			},
 			"workspaces_links": schema.ListAttribute{
 				MarkdownDescription: "IDs of Workspaces to link to this workspace",
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 			},
 			"read_workspaces_links": schema.ListAttribute{
 				MarkdownDescription: "IDs of Workspaces linked to this workspace",
@@ -116,6 +117,13 @@ func (r *workspaceResource) Schema(_ context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Allow dashboards in this workspace to be shared",
 				Optional:            true,
 				Computed:            true,
+			},
+			"sharing_authorized_email_domains": schema.ListAttribute{
+				MarkdownDescription: "Email domains that are authorized to access share dashboards in this workspace",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the workspace",
@@ -278,33 +286,27 @@ func (r *workspaceResource) ImportState(ctx context.Context, req resource.Import
 }
 
 func GenerateWorkspacePayload(plan workspace) map[string]interface{} {
-
-	var linkedPlugins []string = []string{}
-	if !plan.DataSourcesLinks.IsNull() && !plan.DataSourcesLinks.IsUnknown() {
-		var plugins []types.String
-		plan.DataSourcesLinks.ElementsAs(context.TODO(), &plugins, false)
-		for _, plugin := range plugins {
-			linkedPlugins = append(linkedPlugins, plugin.ValueString())
+	// Function to extract values from a list
+	extractStringValues := func(valueList types.List) []string {
+		if valueList.IsNull() || valueList.IsUnknown() {
+			return []string{}
 		}
-	}
-	var linkedWorkspaces []string = []string{}
-	if !plan.WorkspacesLinks.IsNull() && !plan.WorkspacesLinks.IsUnknown() {
-		var workspaces []types.String
-		plan.WorkspacesLinks.ElementsAs(context.TODO(), &workspaces, false)
-		for _, workspace := range workspaces {
-			linkedWorkspaces = append(linkedWorkspaces, workspace.ValueString())
+		var items []types.String
+		valueList.ElementsAs(context.TODO(), &items, false)
+		result := make([]string, len(items))
+		for i, item := range items {
+			result[i] = item.ValueString()
 		}
+		return result
 	}
 
-	var tags []string = []string{}
-	if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
-		var tagList []types.String
-		plan.Tags.ElementsAs(context.TODO(), &tagList, false)
-		for _, tag := range tagList {
-			tags = append(tags, tag.ValueString())
-		}
-	}
+	// Extract values
+	linkedPlugins := extractStringValues(plan.DataSourcesLinks)
+	linkedWorkspaces := extractStringValues(plan.WorkspacesLinks)
+	tags := extractStringValues(plan.Tags)
+	authorizedEmailDomains := extractStringValues(plan.AuthorizedEmailDomains)
 
+	// Create workspace payload
 	workspacePayload := map[string]interface{}{
 		"displayName":      plan.DisplayName.ValueString(),
 		"linkToWorkspaces": linkedWorkspaces == nil,
@@ -313,17 +315,16 @@ func GenerateWorkspacePayload(plan workspace) map[string]interface{} {
 			"workspaces": linkedWorkspaces,
 		},
 		"properties": map[string]interface{}{
-			"openAccessEnabled": plan.DashboardSharingEnabled.ValueBool(),
-			"tags":              tags,
-			"description":       plan.Description.ValueString(),
+			"openAccessEnabled":      plan.DashboardSharingEnabled.ValueBool(),
+			"tags":                   tags,
+			"description":            plan.Description.ValueString(),
+			"authorizedEmailDomains": authorizedEmailDomains,
 		},
 	}
 
 	// SquaredUp API doesn't allow empty string for type, so only add it if it's not empty
-	if properties, ok := workspacePayload["properties"].(map[string]interface{}); ok {
-		if plan.Type.ValueString() != "" {
-			properties["type"] = plan.Type.ValueString()
-		}
+	if properties, ok := workspacePayload["properties"].(map[string]interface{}); ok && plan.Type.ValueString() != "" {
+		properties["type"] = plan.Type.ValueString()
 	}
 
 	return workspacePayload
@@ -336,35 +337,23 @@ func GenerateWorkspaceState(workspaceRead *WorkspaceRead) workspace {
 		Description:             types.StringValue(workspaceRead.Data.Properties.Description),
 		Type:                    types.StringValue(workspaceRead.Data.Properties.Type),
 		DashboardSharingEnabled: types.BoolValue(workspaceRead.Data.Properties.DashboardSharingEnabled),
-		Tags:                    types.ListNull(types.StringType),
-		DataSourcesLinks:        types.ListNull(types.StringType),
-		WorkspacesLinks:         types.ListNull(types.StringType),
 		ReadWorkspacesLinks:     types.ListNull(types.StringType),
 	}
 
-	if len(workspaceRead.Data.Properties.Tags) > 0 {
-		tags := []attr.Value{}
-		for _, tag := range workspaceRead.Data.Properties.Tags {
-			tags = append(tags, types.StringValue(tag))
+	// Convert string slices to attr.Value
+	convertToAttrList := func(items []string) []attr.Value {
+		values := make([]attr.Value, len(items))
+		for i, item := range items {
+			values[i] = types.StringValue(item)
 		}
-		workspace.Tags = types.ListValueMust(types.StringType, tags)
+		return values
 	}
 
-	if len(workspaceRead.Data.Links.Plugins) > 0 {
-		plugins := []attr.Value{}
-		for _, plugin := range workspaceRead.Data.Links.Plugins {
-			plugins = append(plugins, types.StringValue(plugin))
-		}
-		workspace.DataSourcesLinks = types.ListValueMust(types.StringType, plugins)
-	}
-
-	if len(workspaceRead.Data.Links.Workspaces) > 0 {
-		workspaces := []attr.Value{}
-		for _, workspace := range workspaceRead.Data.Links.Workspaces {
-			workspaces = append(workspaces, types.StringValue(workspace))
-		}
-		workspace.ReadWorkspacesLinks = types.ListValueMust(types.StringType, workspaces)
-	}
+	// Convert the string slices to attr.Value
+	workspace.Tags = types.ListValueMust(types.StringType, convertToAttrList(workspaceRead.Data.Properties.Tags))
+	workspace.DataSourcesLinks = types.ListValueMust(types.StringType, convertToAttrList(workspaceRead.Data.Links.Plugins))
+	workspace.ReadWorkspacesLinks = types.ListValueMust(types.StringType, convertToAttrList(workspaceRead.Data.Links.Workspaces))
+	workspace.AuthorizedEmailDomains = types.ListValueMust(types.StringType, convertToAttrList(workspaceRead.Data.Properties.AuthorizedEmailDomains))
 
 	return workspace
 }
