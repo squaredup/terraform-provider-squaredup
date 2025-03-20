@@ -8,16 +8,18 @@ resource "squaredup_datasource" "sample_data_source" {
 }
 
 resource "squaredup_workspace" "application_workspace" {
-  display_name = "Application Team"
-  description  = "Workspace with Dashboards for Application Team"
+  display_name            = "Application Team"
+  allow_dashboard_sharing = false
+  description             = "Workspace with Dashboards for Application Team"
 }
 
 resource "squaredup_workspace" "devops_workspace" {
-  display_name            = "DevOps Team"
-  description             = "Workspace with Dashboards for DevOps Team"
-  type                    = "application"
-  tags                    = ["terraform", "auto-created"]
-  allow_dashboard_sharing = true
-  workspaces_links        = [squaredup_workspace.application_workspace.id]
-  datasources_links       = [squaredup_datasource.sample_data_source.id]
+  display_name                     = "DevOps Team"
+  description                      = "Workspace with Dashboards for DevOps Team"
+  type                             = "application"
+  tags                             = ["terraform", "auto-created"]
+  allow_dashboard_sharing          = true
+  sharing_authorized_email_domains = ["example.com"] // allow_dashboard_sharing must be true
+  workspaces_links                 = [squaredup_workspace.application_workspace.id]
+  datasources_links                = [squaredup_datasource.sample_data_source.id]
 }
