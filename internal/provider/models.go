@@ -38,6 +38,7 @@ type WorkspaceProperties struct {
 	Tags                    []string `json:"tags"`
 	Description             string   `json:"description"`
 	Type                    string   `json:"type,omitempty"`
+	AuthorizedEmailDomains  []string `json:"authorizedEmailDomains"`
 }
 
 type WorkspaceLinks struct {

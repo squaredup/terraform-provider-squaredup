@@ -21,10 +21,19 @@ func TestAccResourceWorkSpace(t *testing.T) {
 					type = "application"
 					tags = ["test", "test2"]
 					allow_dashboard_sharing = true
+					authorized_email_domains = ["test.com"]
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_workspace.test", "display_name", `Workspace Test `+uuid),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "description", "Workspace Used for Testing"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "type", "application"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "tags.0", "test"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "tags.1", "test2"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "allow_dashboard_sharing", "true"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "authorized_email_domains.#", "1"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "authorized_email_domains.0", "test.com"),
 					//Check Dynamic Values
 					resource.TestCheckResourceAttrSet("squaredup_workspace.test", "id"),
 					resource.TestCheckResourceAttrSet("squaredup_workspace.test", "last_updated"),
@@ -41,10 +50,14 @@ func TestAccResourceWorkSpace(t *testing.T) {
 				Config: providerConfig + `
 					resource "squaredup_workspace" "test" {
 						display_name = "Workspace Test ` + uuid + `- Updated"
+						allow_dashboard_sharing = false
+						authorized_email_domains = []
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_workspace.test", "display_name", `Workspace Test `+uuid+`- Updated`),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "allow_dashboard_sharing", "false"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "authorized_email_domains.#", "0"),
 				),
 			},
 		},
