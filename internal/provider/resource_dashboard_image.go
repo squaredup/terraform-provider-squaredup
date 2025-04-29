@@ -31,7 +31,7 @@ type SquaredUpDashboardImage struct {
 	ImageId            types.String `tfsdk:"id"`
 	TileId             types.String `tfsdk:"tile_id"`
 	DashboardId        types.String `tfsdk:"dashboard_id"`
-	WorkspacId         types.String `tfsdk:"workspace_id"`
+	WorkspaceId        types.String `tfsdk:"workspace_id"`
 	ImageBase64DataUri types.String `tfsdk:"image_base64_data_uri"`
 	ImageFileName      types.String `tfsdk:"image_file_name"`
 }
@@ -107,7 +107,7 @@ func (r *DashboardImageResource) Create(ctx context.Context, req resource.Create
 		},
 	}
 
-	err := r.client.UploadDashboardImage(plan.WorkspacId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString(), &requestBody)
+	err := r.client.UploadDashboardImage(plan.WorkspaceId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString(), &requestBody)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Uploading Dashboard Image",
@@ -116,7 +116,7 @@ func (r *DashboardImageResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	dashboardImage, err := r.client.GetDashboardImage(plan.WorkspacId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString())
+	dashboardImage, err := r.client.GetDashboardImage(plan.WorkspaceId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Dashboard Image During Create",
@@ -129,7 +129,7 @@ func (r *DashboardImageResource) Create(ctx context.Context, req resource.Create
 		ImageId:            types.StringValue(plan.TileId.ValueString()),
 		TileId:             types.StringValue(plan.TileId.ValueString()),
 		DashboardId:        types.StringValue(plan.DashboardId.ValueString()),
-		WorkspacId:         types.StringValue(plan.WorkspacId.ValueString()),
+		WorkspaceId:        types.StringValue(plan.WorkspaceId.ValueString()),
 		ImageBase64DataUri: types.StringValue(dashboardImage.DataURL),
 		ImageFileName:      types.StringValue(dashboardImage.Metadata.FileName),
 	}
@@ -149,7 +149,7 @@ func (r *DashboardImageResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	dashboardImage, err := r.client.GetDashboardImage(state.WorkspacId.ValueString(), state.DashboardId.ValueString(), state.TileId.ValueString())
+	dashboardImage, err := r.client.GetDashboardImage(state.WorkspaceId.ValueString(), state.DashboardId.ValueString(), state.TileId.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Dashboard Image",
@@ -183,7 +183,7 @@ func (r *DashboardImageResource) Update(ctx context.Context, req resource.Update
 		},
 	}
 
-	err := r.client.UploadDashboardImage(plan.WorkspacId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString(), &requestBody)
+	err := r.client.UploadDashboardImage(plan.WorkspaceId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString(), &requestBody)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Dashboard Image",
@@ -192,7 +192,7 @@ func (r *DashboardImageResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	dashboardImage, err := r.client.GetDashboardImage(plan.WorkspacId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString())
+	dashboardImage, err := r.client.GetDashboardImage(plan.WorkspaceId.ValueString(), plan.DashboardId.ValueString(), plan.TileId.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Dashboard Image During Update",
@@ -205,7 +205,7 @@ func (r *DashboardImageResource) Update(ctx context.Context, req resource.Update
 		ImageId:            types.StringValue(plan.TileId.ValueString()),
 		TileId:             types.StringValue(plan.TileId.ValueString()),
 		DashboardId:        types.StringValue(plan.DashboardId.ValueString()),
-		WorkspacId:         types.StringValue(plan.WorkspacId.ValueString()),
+		WorkspaceId:        types.StringValue(plan.WorkspaceId.ValueString()),
 		ImageBase64DataUri: types.StringValue(dashboardImage.DataURL),
 		ImageFileName:      types.StringValue(dashboardImage.Metadata.FileName),
 	}
@@ -225,7 +225,7 @@ func (r *DashboardImageResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	err := r.client.DeleteDashboardImage(state.WorkspacId.ValueString(), state.DashboardId.ValueString(), state.TileId.ValueString())
+	err := r.client.DeleteDashboardImage(state.WorkspaceId.ValueString(), state.DashboardId.ValueString(), state.TileId.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Dashboard Image",
