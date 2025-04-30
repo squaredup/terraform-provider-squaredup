@@ -32,7 +32,7 @@ func (c *SquaredUpClient) GetDataStreams(dataSourceId string, DataStreamDefiniti
 		}
 
 		if len(filteredDataStreams) == 0 {
-			return nil, fmt.Errorf("No data streams found with data source name: %s", DataStreamDefinitionName)
+			return nil, fmt.Errorf("no data streams found with data source name: %s", DataStreamDefinitionName)
 		}
 
 		return filteredDataStreams, nil
