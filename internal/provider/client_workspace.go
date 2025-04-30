@@ -54,7 +54,7 @@ func (c *SquaredUpClient) UpdateWorkspace(workspaceId string, workspacePayload m
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", c.baseURL+"/api/workspaces/"+workspaceId, strings.NewReader(string(rb)))
+	req, err := http.NewRequest("PATCH", c.baseURL+"/api/workspaces/"+workspaceId, strings.NewReader(string(rb)))
 	if err != nil {
 		return err
 	}
