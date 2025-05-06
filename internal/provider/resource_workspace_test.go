@@ -52,11 +52,13 @@ func TestAccResourceWorkSpace(t *testing.T) {
 						display_name = "Workspace Test ` + uuid + `- Updated"
 						allow_dashboard_sharing = false
 						sharing_authorized_email_domains = []
+						type = "other"
 					}
 					`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_workspace.test", "display_name", `Workspace Test `+uuid+`- Updated`),
 					resource.TestCheckResourceAttr("squaredup_workspace.test", "allow_dashboard_sharing", "false"),
+					resource.TestCheckResourceAttr("squaredup_workspace.test", "type", "other"),
 					resource.TestCheckResourceAttr("squaredup_workspace.test", "sharing_authorized_email_domains.#", "0"),
 				),
 			},

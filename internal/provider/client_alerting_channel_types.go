@@ -32,7 +32,7 @@ func (c *SquaredUpClient) GetAlertingChannelTypes(displayName string) ([]Alertin
 		}
 
 		if len(filteredAlertingChannelTypes) == 0 {
-			return nil, fmt.Errorf("No alerting channel types found with display name: %s", displayName)
+			return nil, fmt.Errorf("no alerting channel types found with display name: %s", displayName)
 		}
 
 		return filteredAlertingChannelTypes, nil
