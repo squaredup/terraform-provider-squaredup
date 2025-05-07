@@ -42,10 +42,10 @@ func (r *DashboardImageResource) Metadata(_ context.Context, req resource.Metada
 
 func (r *DashboardImageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "SquaredUp Dashboard Image resource allows you to upload an image to a dashboard tile.",
+		MarkdownDescription: "SquaredUp Dashboard Image resource allows you to upload an image for use in the Image tile.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the dashboard image which is the same as the tile ID.",
+				MarkdownDescription: "The ID of the dashboard image (which is the same as the tile ID).",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),

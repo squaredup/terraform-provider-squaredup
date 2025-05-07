@@ -3,12 +3,12 @@
 page_title: "squaredup_dashboard_image Resource - squaredup"
 subcategory: ""
 description: |-
-  SquaredUp Dashboard Image resource allows you to upload an image to a dashboard tile.
+  SquaredUp Dashboard Image resource allows you to upload an image for use in the Image tile.
 ---
 
 # squaredup_dashboard_image (Resource)
 
-SquaredUp Dashboard Image resource allows you to upload an image to a dashboard tile.
+SquaredUp Dashboard Image resource allows you to upload an image for use in the Image tile.
 
 ## Example Usage
 
@@ -79,7 +79,7 @@ resource "squaredup_dashboard_image" "application1_image" {
 
 ### Read-Only
 
-- `id` (String) The ID of the dashboard image which is the same as the tile ID.
+- `id` (String) The ID of the dashboard image (which is the same as the tile ID).
 
 ## Import
 
