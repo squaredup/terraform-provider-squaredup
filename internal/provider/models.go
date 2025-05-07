@@ -191,3 +191,12 @@ type ScopeData struct {
 	Query       string `json:"query"`
 	QueryDetail string `json:"queryDetail"`
 }
+
+type DashboardImage struct {
+	DataURL  string                 `json:"dataURL"`
+	Metadata DashboardImageMetadata `json:"metadata"`
+}
+
+type DashboardImageMetadata struct {
+	FileName string `json:"fileName"`
+}
