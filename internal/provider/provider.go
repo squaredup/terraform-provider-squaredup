@@ -166,5 +166,6 @@ func (p *squaredupProvider) Resources(_ context.Context) []func() resource.Resou
 		SquaredUpScopeResource,
 		SquaredUpDashboardImageResource,
 		SquaredUpDashboardVariableResource,
+		SquaredUpDashboardOrderingResource,
 	}
 }
