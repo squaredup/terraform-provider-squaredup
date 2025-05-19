@@ -164,5 +164,6 @@ func (p *squaredupProvider) Resources(_ context.Context) []func() resource.Resou
 		SquaredupWorkspaceAlertResource,
 		SquaredUpScriptResource,
 		SquaredUpScopeResource,
+		SquaredUpDashboardImageResource,
 	}
 }
