@@ -3,12 +3,12 @@
 page_title: "squaredup_dashboard_ordering Resource - squaredup"
 subcategory: ""
 description: |-
-  Manage the order of dashboards in a workspace. It also allows you to create dashboard folders.
+  Specify the order of dashboards and folders on the navigation bar for a given workspace.
 ---
 
 # squaredup_dashboard_ordering (Resource)
 
-Manage the order of dashboards in a workspace. It also allows you to create dashboard folders.
+Specify the order of dashboards and folders on the navigation bar for a given workspace.
 
 ## Example Usage
 
@@ -155,7 +155,7 @@ resource "squaredup_dashboard_ordering" "example_ordering" {
 ### Read-Only
 
 - `id` (String) The ID of the workspace.
-- `last_updated` (String) The last time the workspace order was updated.
+- `last_updated` (String) The last time the workspace was updated.
 
 ## Import
 
