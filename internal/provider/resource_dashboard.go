@@ -37,6 +37,7 @@ type squaredupDashboard struct {
 	DisplayName       types.String         `tfsdk:"display_name"`
 	WorkspaceID       types.String         `tfsdk:"workspace_id"`
 	DashboardTemplate types.String         `tfsdk:"dashboard_template"`
+	DashboardVariable types.String         `tfsdk:"dashboard_variable_id"`
 	TemplateBindings  jsontypes.Normalized `tfsdk:"template_bindings"`
 	DashboardContent  jsontypes.Normalized `tfsdk:"dashboard_content"`
 	Timeframe         types.String         `tfsdk:"timeframe"`
@@ -70,6 +71,11 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"dashboard_template": schema.StringAttribute{
 				MarkdownDescription: "Dashboard template to use for the dashboard",
 				Required:            true,
+			},
+			"dashboard_variable_id": schema.StringAttribute{
+				MarkdownDescription: "Dashboard variable to use for the dashboard",
+				Optional:            true,
+				Computed:            true,
 			},
 			"template_bindings": schema.StringAttribute{
 				MarkdownDescription: "Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.",
@@ -180,6 +186,18 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	var dashboardVariableID string
+	if plan.DashboardVariable.ValueString() != "" {
+		dashboardVariableID, err = UpdateDashboardVariable(r, dashboard.ID, plan.DashboardVariable.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to update dashboard variable",
+				err.Error(),
+			)
+			return
+		}
+	}
+
 	state := squaredupDashboard{
 		DashboardID:       types.StringValue(dashboard.ID),
 		DisplayName:       types.StringValue(dashboard.DisplayName),
@@ -190,6 +208,12 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 		Timeframe:         types.StringValue(dashboard.Timeframe),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
+	}
+
+	if dashboardVariableID != "" {
+		state.DashboardVariable = types.StringValue(dashboardVariableID)
+	} else {
+		state.DashboardVariable = types.StringNull()
 	}
 
 	diags = resp.State.Set(ctx, &state)
@@ -226,6 +250,21 @@ func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 		DashboardContent:  state.DashboardContent,
 		Timeframe:         types.StringValue(dashboard.Timeframe),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
+	}
+
+	// Check if the dashboard variable ID is set
+	if state.DashboardVariable.ValueString() != "" {
+		dashboardVariable, err := r.client.GetDashboardVariable(state.DashboardVariable.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to get dashboard variable",
+				err.Error(),
+			)
+			return
+		}
+		state.DashboardVariable = types.StringValue(dashboardVariable.ID)
+	} else {
+		state.DashboardVariable = types.StringNull()
 	}
 
 	diags = resp.State.Set(ctx, &state)
@@ -285,6 +324,20 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	var dashboardVariableID string
+	if plan.DashboardVariable.ValueString() != "" {
+		dashboardVariableID, err = UpdateDashboardVariable(r, dashboard.ID, plan.DashboardVariable.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to update dashboard variable",
+				err.Error(),
+			)
+			return
+		}
+	} else {
+		dashboardVariableID = ""
+	}
+
 	plan = squaredupDashboard{
 		DashboardID:       types.StringValue(dashboard.ID),
 		DisplayName:       types.StringValue(dashboard.DisplayName),
@@ -295,6 +348,12 @@ func (r *DashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		Timeframe:         types.StringValue(dashboard.Timeframe),
 		SchemaVersion:     types.StringValue(dashboard.SchemaVersion),
 		LastUpdated:       types.StringValue(time.Now().Format(time.RFC850)),
+	}
+
+	if dashboardVariableID != "" {
+		plan.DashboardVariable = types.StringValue(dashboardVariableID)
+	} else {
+		plan.DashboardVariable = types.StringNull()
 	}
 
 	diags = resp.State.Set(ctx, &plan)
@@ -324,4 +383,27 @@ func (r *DashboardResource) Delete(ctx context.Context, req resource.DeleteReque
 
 func (r *DashboardResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func UpdateDashboardVariable(squaredupProvider *DashboardResource, dashboardID string, variableId string) (string, error) {
+	dashboardVariable, err := squaredupProvider.client.GetDashboardVariable(variableId)
+	if err != nil {
+		return "", err
+	}
+
+	updateRequestBody := DashboardVariable{
+		Name:                   dashboardVariable.Name,
+		Type:                   dashboardVariable.Content.Type,
+		ScopeID:                dashboardVariable.Content.ScopeID,
+		Default:                dashboardVariable.Content.Default,
+		AllowMultipleSelection: dashboardVariable.Content.AllowMultipleSelection,
+		DashboardID:            dashboardID,
+	}
+
+	updatedDashboardVariable, err := squaredupProvider.client.UpdateDashboardVariable(dashboardVariable.ID, updateRequestBody)
+	if err != nil {
+		return "", err
+	}
+
+	return updatedDashboardVariable.ID, nil
 }
