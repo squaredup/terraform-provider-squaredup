@@ -41,7 +41,7 @@ func (r *DashboardOrderingResource) Metadata(_ context.Context, req resource.Met
 
 func (r *DashboardOrderingResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage the order of dashboards in a workspace. It also allows you to create dashboard folders.",
+		MarkdownDescription: "Specify the order of dashboards and folders on the navigation bar for a given workspace.",
 		Attributes: map[string]schema.Attribute{
 			"workspace_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the workspace to manage.",
@@ -59,7 +59,7 @@ func (r *DashboardOrderingResource) Schema(_ context.Context, _ resource.SchemaR
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				MarkdownDescription: "The last time the workspace order was updated.",
+				MarkdownDescription: "The last time the workspace was updated.",
 				Computed:            true,
 			},
 		},
