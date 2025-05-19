@@ -110,7 +110,7 @@ func (r *DashboardVariableResource) Create(ctx context.Context, req resource.Cre
 
 	if plan.DefaultObjectSelection.ValueString() == "all" && plan.AllowMultipleObjectSelection.ValueBool() {
 		resp.Diagnostics.AddError(
-			"Invalid configuration: ''allow_multiple_object_selection' cannot be true when 'default_object_selection' is set to 'all'.",
+			"Invalid configuration: 'allow_multiple_object_selection' cannot be true when 'default_object_selection' is set to 'all'.",
 			"'allow_multiple_object_selection' can only be true when 'default_object_selection' is set to 'none'.",
 		)
 		return
@@ -191,7 +191,7 @@ func (r *DashboardVariableResource) Update(ctx context.Context, req resource.Upd
 
 	if plan.DefaultObjectSelection.ValueString() == "all" && plan.AllowMultipleObjectSelection.ValueBool() {
 		resp.Diagnostics.AddError(
-			"Invalid configuration: ''allow_multiple_object_selection' cannot be true when 'default_object_selection' is set to 'all'.",
+			"Invalid configuration: 'allow_multiple_object_selection' cannot be true when 'default_object_selection' is set to 'all'.",
 			"'allow_multiple_object_selection' can only be true when 'default_object_selection' is set to 'none'.",
 		)
 		return

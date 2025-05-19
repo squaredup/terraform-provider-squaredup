@@ -95,7 +95,7 @@ resource "squaredup_dashboard" "all_objects" {
 }
 EOT
   template_bindings = jsonencode({
-    example_variable_id                = "squaredup_dashboard_variable.example_variable.id"
+    example_variable_id                = squaredup_dashboard_variable.example_variable.id
     workspace_id                       = squaredup_workspace.application_workspace.id
     dynamic_scope_id                   = squaredup_scope.dynamic_scope.id
     perf_lambda_duration_datastream_id = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "perf-lambda-duration")].id
@@ -156,7 +156,7 @@ resource "squaredup_dashboard" "no_default_objects" {
 }
 EOT
   template_bindings = jsonencode({
-    example_none_variable_id = "squaredup_dashboard_variable.example_none_variable.id"
+    example_none_variable_id = squaredup_dashboard_variable.example_none_variable.id
     workspace_id             = squaredup_workspace.application_workspace.id
     dynamic_scope_id         = squaredup_scope.dynamic_scope.id
     perf_cost_datastream_id  = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "perf-cost")].id
