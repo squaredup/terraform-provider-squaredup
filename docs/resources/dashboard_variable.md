@@ -3,12 +3,12 @@
 page_title: "squaredup_dashboard_variable Resource - squaredup"
 subcategory: ""
 description: |-
-  Dashboard variables enable flexible and reusable dashboards by allowing viewers to switch between objects dynamically.
+  Dashboard variables allow you to create flexible and reusable dashboards, allowing dashboard viewers to switch between objects on the fly.
 ---
 
 # squaredup_dashboard_variable (Resource)
 
-Dashboard variables enable flexible and reusable dashboards by allowing viewers to switch between objects dynamically.
+Dashboard variables allow you to create flexible and reusable dashboards, allowing dashboard viewers to switch between objects on the fly.
 
 ## Example Usage
 
@@ -175,7 +175,7 @@ EOT
 
 ### Optional
 
-- `allow_multiple_object_selection` (Boolean) Whether to allow multiple object selection for the dashboard variable.
+- `allow_multiple_object_selection` (Boolean) Whether to allow users to select multiple objects for the dashboard variable.
 
 ### Read-Only
 

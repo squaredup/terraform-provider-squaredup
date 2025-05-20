@@ -73,7 +73,7 @@ func (r *DashboardResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required:            true,
 			},
 			"dashboard_variable_id": schema.StringAttribute{
-				MarkdownDescription: "Dashboard variable to use for the dashboard",
+				MarkdownDescription: "ID of the dashboard variable to use for this dashboard",
 				Optional:            true,
 				Computed:            true,
 			},

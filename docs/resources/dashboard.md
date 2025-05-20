@@ -228,7 +228,7 @@ EOT
 
 ### Optional
 
-- `dashboard_variable_id` (String) Dashboard variable to use for the dashboard
+- `dashboard_variable_id` (String) ID of the dashboard variable to use for this dashboard
 - `schema_version` (String) The schema version of the dashboard
 - `template_bindings` (String) Template Bindings used for replacing mustache template in the dashboard template. Needs to be a JSON encoded string.
 - `timeframe` (String) The timeframe of the dashboard. It should be one of the following: last1hour, last12hours, last24hours, last7days, last30days, thisMonth, thisQuarter, thisYear, lastMonth, lastQuarter, lastYear

@@ -44,7 +44,7 @@ func (r *DashboardVariableResource) Metadata(_ context.Context, req resource.Met
 
 func (r *DashboardVariableResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Dashboard variables enable flexible and reusable dashboards by allowing viewers to switch between objects dynamically.",
+		MarkdownDescription: "Dashboard variables allow you to create flexible and reusable dashboards, allowing dashboard viewers to switch between objects on the fly.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the dashboard variable.",
@@ -70,7 +70,7 @@ func (r *DashboardVariableResource) Schema(_ context.Context, _ resource.SchemaR
 				)},
 			},
 			"allow_multiple_object_selection": schema.BoolAttribute{
-				MarkdownDescription: "Whether to allow multiple object selection for the dashboard variable.",
+				MarkdownDescription: "Whether to allow users to select multiple objects for the dashboard variable.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
