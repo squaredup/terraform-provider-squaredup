@@ -34,11 +34,12 @@ type WorkspaceReadData struct {
 }
 
 type WorkspaceProperties struct {
-	DashboardSharingEnabled bool     `json:"openAccessEnabled"`
-	Tags                    []string `json:"tags"`
-	Description             string   `json:"description"`
-	Type                    string   `json:"type,omitempty"`
-	AuthorizedEmailDomains  []string `json:"authorizedEmailDomains"`
+	DashboardSharingEnabled bool          `json:"openAccessEnabled"`
+	Tags                    []string      `json:"tags"`
+	Description             string        `json:"description"`
+	Type                    string        `json:"type,omitempty"`
+	AuthorizedEmailDomains  []string      `json:"authorizedEmailDomains"`
+	DashboardIdOrder        []interface{} `json:"dashboardIdOrder,omitempty"`
 }
 
 type WorkspaceLinks struct {
