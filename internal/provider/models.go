@@ -200,3 +200,20 @@ type DashboardImage struct {
 type DashboardImageMetadata struct {
 	FileName string `json:"fileName"`
 }
+
+type DashboardVariable struct {
+	Name                   string `json:"name"`
+	Type                   string `json:"type"`
+	ScopeID                string `json:"scope"`
+	Default                string `json:"default"`
+	AllowMultipleSelection bool   `json:"allowMultipleSelection"`
+	DashboardID            string `json:"dashboardId,omitempty"`
+}
+
+type DashboardVariableRead struct {
+	WorkspaceID string            `json:"workspaceId"`
+	Content     DashboardVariable `json:"content"`
+	DisplayName string            `json:"displayName"`
+	Name        string            `json:"name"`
+	ID          string            `json:"id"`
+}
