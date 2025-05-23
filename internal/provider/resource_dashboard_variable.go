@@ -47,18 +47,18 @@ func (r *DashboardVariableResource) Schema(_ context.Context, _ resource.SchemaR
 		MarkdownDescription: "Dashboard variables allow you to create flexible and reusable dashboards, allowing dashboard viewers to switch between objects on the fly.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier of the dashboard variable.",
+				MarkdownDescription: "The id of the dashboard variable.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"workspace_id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier of the workspace.",
+				MarkdownDescription: "The id of the workspace.",
 				Required:            true,
 			},
 			"collection_id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier of the collection (scope) for the dashboard variable.",
+				MarkdownDescription: "The id of the collection (scope) for the dashboard variable.",
 				Required:            true,
 			},
 			"default_object_selection": schema.StringAttribute{

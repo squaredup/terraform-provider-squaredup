@@ -169,9 +169,9 @@ EOT
 
 ### Required
 
-- `collection_id` (String) The unique identifier of the collection (scope) for the dashboard variable.
+- `collection_id` (String) The id of the collection (scope) for the dashboard variable.
 - `default_object_selection` (String) The default object selection for the dashboard variable. Allowed values: `none`, `all`.
-- `workspace_id` (String) The unique identifier of the workspace.
+- `workspace_id` (String) The id of the workspace.
 
 ### Optional
 
@@ -179,7 +179,7 @@ EOT
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the dashboard variable.
+- `id` (String) The id of the dashboard variable.
 - `last_updated` (String) Last updated timestamp of the dashboard variable
 
 ## Import
