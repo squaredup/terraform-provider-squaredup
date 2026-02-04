@@ -55,6 +55,8 @@ resource "squaredup_datasource" "ado_datasource" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Data Source can be imported by specifying datasource id.
 terraform import squaredup_datasource.example config-123
