@@ -83,6 +83,8 @@ resource "squaredup_dashboard_share" "sample_dashboard_share" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Dashboard share can be imported using the OA ID.
 terraform import squaredup_dashboard.example openacc-123

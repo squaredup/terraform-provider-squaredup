@@ -85,6 +85,8 @@ resource "squaredup_dashboard_image" "application1_image" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Dashboard Image can be imported by specifying the workspace id, dashboard id and the tile id.
 terraform import squaredup_dashboard_image.example space-123,dash-123,tile-guid
