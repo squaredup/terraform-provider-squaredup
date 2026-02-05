@@ -52,6 +52,8 @@ resource "squaredup_alerting_channel" "slack_api_alert" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Alerting Channel can be imported by specifying channel id.
 terraform import squaredup_alerting_channel.example channel-123

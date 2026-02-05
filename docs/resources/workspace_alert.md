@@ -252,6 +252,8 @@ Required:
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Workspace Alerts can be imported by specifying workspace id.
 terraform import squaredup_workspace_alert.example space-123

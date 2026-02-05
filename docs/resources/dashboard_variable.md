@@ -186,6 +186,8 @@ EOT
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Dashboard variable can be imported using the variable id.
 terraform import squaredup_dashboard_variable.example variable-123
