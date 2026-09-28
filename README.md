@@ -8,7 +8,7 @@ A Terraform provider for managing [SquaredUp](https://app.squaredup.com/)
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.2
-- [Go](https://golang.org/doc/install) >= 1.26
+- [Go](https://golang.org/doc/install) >= 1.27
 - [GoReleaser](https://goreleaser.com/) >= 0.153.x
 
 ## Building The Provider
