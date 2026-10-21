@@ -47,6 +47,7 @@ type CacheStep struct {
 	DataStream     CacheDataStream `json:"dataStream"`
 	Timeframe      interface{}     `json:"timeframe"`
 	SupportedScope string          `json:"supportedScope"`
+	Scope          interface{}     `json:"scope"`
 	CacheMapping   struct {
 		TableName string `json:"tableName"`
 		CacheStorage

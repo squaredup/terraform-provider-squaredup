@@ -31,27 +31,34 @@ resource "squaredup_datasource" "sample_data_source" {
   data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
-resource "squaredup_workspace" "application_workspace" {
-  display_name      = "Application Team"
-  description       = "Workspace with Dashboards for Application Team"
-  datasources_links = [squaredup_datasource.sample_data_source.id]
-}
-
 data "squaredup_data_streams" "database_free_space" {
   data_source_id              = data.squaredup_datasources.sample_data.plugins[0].id
   data_stream_definition_name = "database-free-space"
 }
 
-# Syncs every hour. Full sync replaces the cached rows on every sync.
+data "squaredup_nodes" "database_1" {
+  depends_on     = [squaredup_datasource.sample_data_source]
+  data_source_id = squaredup_datasource.sample_data_source.id
+  node_source_id = "sample-database-1"
+}
+
+data "squaredup_nodes" "database_2" {
+  depends_on     = [squaredup_datasource.sample_data_source]
+  data_source_id = squaredup_datasource.sample_data_source.id
+  node_source_id = "sample-database-2"
+}
+
+# Syncs every hour for two objects. Full sync replaces the cached rows on
+# every sync.
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
   data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
   supported_scope = "list"
-  scope = jsonencode({
-    workspaceId = squaredup_workspace.application_workspace.id
-    query       = "g.V().has('type', 'sample-database')"
-  })
+  object_ids = [
+    data.squaredup_nodes.database_1.node_properties[0].id,
+    data.squaredup_nodes.database_2.node_properties[0].id,
+  ]
   timeframe         = "last24hours"
   frequency_minutes = 60
   sync_mode         = "full"
@@ -64,23 +71,23 @@ resource "squaredup_cache" "database_free_space" {
   }
 }
 
-data "squaredup_data_streams" "logs" {
-  data_source_id              = data.squaredup_datasources.sample_data.plugins[0].id
-  data_stream_definition_name = "logs"
-}
-
-# Syncs every 15 minutes. Incremental sync merges new and changed rows into
-# the cached rows.
-# Use column names returned by your data stream.
-resource "squaredup_cache" "logs" {
-  display_name              = "Application Logs"
-  data_source_id            = squaredup_datasource.sample_data_source.id
-  data_stream_id            = data.squaredup_data_streams.logs.data_streams[0].id
-  supported_scope           = "none"
+# Syncs every 15 minutes for every database, selected with a Gremlin query.
+# Incremental sync merges new and changed rows into the cached rows. The
+# column names are the data stream's column names.
+resource "squaredup_cache" "database_free_space_history" {
+  display_name    = "Free Space History"
+  data_source_id  = squaredup_datasource.sample_data_source.id
+  data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
+  supported_scope = "list"
+  scope = jsonencode({
+    query       = "g.V().has('sourceType', 'sample-database')"
+    bindings    = {}
+    queryDetail = {}
+  })
   frequency_minutes         = 15
   sync_mode                 = "incremental"
-  unique_identifier_columns = ["id"]
-  last_modified_column      = "timestamp"
+  unique_identifier_columns = ["data.database", "data.timestamp"]
+  last_modified_column      = "data.timestamp"
   retention_period_days     = 7
 }
 
@@ -107,9 +114,10 @@ output "database_free_space_table" {
 - `enabled` (Boolean) Whether the cache syncs at its sync frequency. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.
 - `frequency_minutes` (Number) The sync frequency: how often the cache syncs the data, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`, from every 5 minutes up to the default of 24 hours. Sync more often if you need more up-to-date data, but leave enough time for each sync to finish.
 - `last_modified_column` (String) Incremental sync only. The column holding when a row last changed
+- `object_ids` (Set of String) The IDs of the objects to cache data for, for example from the `squaredup_nodes` data source. Conflicts with `scope`.
 - `retain_mirrors` (Number) Full sync only. How many previous syncs to keep: `1`, `3` or `5`. Defaults to `1`.
 - `retention_period_days` (Number) Incremental sync only. How long to keep rows, in days: `7`, `30`, `90` or `365`. Defaults to `30`.
-- `scope` (String) JSON scope selecting the objects to cache data for. The server resolves collection references into their queries, so changes made to the scope outside Terraform are not detected.
+- `scope` (String) JSON scope selecting the objects to cache data for, for scopes `object_ids` can't express, such as a Gremlin query. A collection reference is replaced with the collection's query when the cache is saved, so later changes to the collection don't change the cache. Changes made to this scope outside Terraform are not detected. Conflicts with `object_ids`.
 - `sync_mode` (String) `full` replaces the cached rows on every sync. `incremental` merges new and changed rows into them. Defaults to `full`.
 - `timeframe` (String) The timeframe passed to the source data stream on each sync, for example `last24hours` or `last7days`. Defaults to `last24hours`.
 - `unique_identifier_columns` (List of String) Incremental sync only. The columns that identify a row, used to update rows rather than duplicate them

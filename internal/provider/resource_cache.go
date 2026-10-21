@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -46,6 +48,7 @@ type squaredupCache struct {
 	DataStreamConfig        jsontypes.Normalized `tfsdk:"data_stream_config"`
 	SupportedScope          types.String         `tfsdk:"supported_scope"`
 	Scope                   jsontypes.Normalized `tfsdk:"scope"`
+	ObjectIDs               types.Set            `tfsdk:"object_ids"`
 	Timeframe               types.String         `tfsdk:"timeframe"`
 	FrequencyMinutes        types.Int64          `tfsdk:"frequency_minutes"`
 	SyncMode                types.String         `tfsdk:"sync_mode"`
@@ -112,10 +115,21 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"scope": schema.StringAttribute{
-				MarkdownDescription: "JSON scope selecting the objects to cache data for. The server resolves collection references into their queries, so changes made to the scope outside Terraform are not detected.",
+			"object_ids": schema.SetAttribute{
+				MarkdownDescription: "The IDs of the objects to cache data for, for example from the `squaredup_nodes` data source. Conflicts with `scope`.",
 				Optional:            true,
-				CustomType:          jsontypes.NormalizedType{},
+				ElementType:         types.StringType,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.ConflictsWith(path.MatchRoot("scope")),
+				},
+			},
+			"scope": schema.StringAttribute{
+				MarkdownDescription: "JSON scope selecting the objects to cache data for, for scopes `object_ids` can't express, such as a Gremlin query. " +
+					"A collection reference is replaced with the collection's query when the cache is saved, so later changes to the collection don't change the cache. " +
+					"Changes made to this scope outside Terraform are not detected. Conflicts with `object_ids`.",
+				Optional:   true,
+				CustomType: jsontypes.NormalizedType{},
 			},
 			"timeframe": schema.StringAttribute{
 				MarkdownDescription: "The timeframe passed to the source data stream on each sync, for example `last24hours` or `last7days`. Defaults to `last24hours`.",
@@ -243,7 +257,7 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	dataStream, diags := cacheDataStream(plan)
 	resp.Diagnostics.Append(diags...)
-	scope, diags := cacheScope(plan.Scope)
+	scope, diags := cacheScope(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	storage, diags := cacheStorage(ctx, plan, false)
 	resp.Diagnostics.Append(diags...)
@@ -339,8 +353,8 @@ func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		changed = true
 	}
 
-	if !plan.Scope.Equal(state.Scope) {
-		scope, diags := cacheScope(plan.Scope)
+	if !plan.Scope.Equal(state.Scope) || !plan.ObjectIDs.Equal(state.ObjectIDs) {
+		scope, diags := cacheScope(ctx, plan)
 		resp.Diagnostics.Append(diags...)
 		if scope == nil {
 			// An empty list is how the API is told the scope was cleared
@@ -461,14 +475,65 @@ func cacheDataStream(plan squaredupCache) (CacheDataStream, diag.Diagnostics) {
 	return dataStream, diags
 }
 
-func cacheScope(scope jsontypes.Normalized) (interface{}, diag.Diagnostics) {
-	if scope.IsNull() {
+// objectIDsBinding follows the SquaredUp UI, which finds the object list in a scope by the
+// binding name's ids_ prefix.
+const objectIDsBinding = "ids_objectIds"
+
+var objectIDsQueryPattern = regexp.MustCompile(`^g\.V\(\)\.has\('id', within\((ids_\w+)\)\)$`)
+
+// cacheScope returns the scope to send for the plan's object_ids or scope, or nil for neither.
+func cacheScope(ctx context.Context, plan squaredupCache) (interface{}, diag.Diagnostics) {
+	if !plan.ObjectIDs.IsNull() {
+		ids := []string{}
+		diags := plan.ObjectIDs.ElementsAs(ctx, &ids, false)
+		sort.Strings(ids)
+
+		return map[string]interface{}{
+			"query":       "g.V().has('id', within(" + objectIDsBinding + "))",
+			"bindings":    map[string]interface{}{objectIDsBinding: ids},
+			"queryDetail": map[string]interface{}{"ids": ids},
+		}, diags
+	}
+
+	if plan.Scope.IsNull() {
 		return nil, nil
 	}
 
 	var value interface{}
-	diags := scope.Unmarshal(&value)
+	diags := plan.Scope.Unmarshal(&value)
 	return value, diags
+}
+
+// scopeObjectIDs returns the object IDs of a stored scope that is a plain list of objects, as
+// object_ids and the SquaredUp UI both save one, or nil for any other scope.
+func scopeObjectIDs(scope interface{}) []string {
+	scopeMap, ok := scope.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	query, _ := scopeMap["query"].(string)
+	match := objectIDsQueryPattern.FindStringSubmatch(query)
+	bindings, _ := scopeMap["bindings"].(map[string]interface{})
+	if match == nil || bindings == nil {
+		return nil
+	}
+
+	values, ok := bindings[match[1]].([]interface{})
+	if !ok || len(values) == 0 {
+		return nil
+	}
+
+	ids := make([]string, 0, len(values))
+	for _, value := range values {
+		id, ok := value.(string)
+		if !ok {
+			return nil
+		}
+		ids = append(ids, id)
+	}
+
+	return ids
 }
 
 // cacheStorage sends only the storage settings that are known, so the server applies its
@@ -504,8 +569,9 @@ func cacheStorage(ctx context.Context, plan squaredupCache, isUpdate bool) (Cach
 	return storage, diags
 }
 
-// cacheState maps a Cache read from the API onto Terraform state. The scope is kept
-// from prior, because the server rewrites collection references into their queries on save.
+// cacheState maps a cache read from the API onto Terraform state. The scope is kept from prior,
+// because the server rewrites collection references into their queries on save. Object IDs are
+// read back unless the configuration uses scope, so a list changed outside Terraform shows as drift.
 func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (squaredupCache, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -564,6 +630,13 @@ func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (sq
 		state.DataStreamConfig = jsontypes.NewNormalizedValue(string(dataSourceConfig))
 	} else if !prior.DataStreamConfig.IsNull() {
 		state.DataStreamConfig = jsontypes.NewNormalizedValue("{}")
+	}
+
+	state.ObjectIDs = types.SetNull(types.StringType)
+	if objectIDs := scopeObjectIDs(step.Scope); objectIDs != nil && prior.Scope.IsNull() {
+		ids, setDiags := types.SetValueFrom(ctx, types.StringType, objectIDs)
+		diags.Append(setDiags...)
+		state.ObjectIDs = ids
 	}
 
 	state.UniqueIdentifierColumns = types.ListNull(types.StringType)
