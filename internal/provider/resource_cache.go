@@ -23,21 +23,21 @@ import (
 )
 
 var (
-	_ resource.Resource                   = &SmartCacheResource{}
-	_ resource.ResourceWithConfigure      = &SmartCacheResource{}
-	_ resource.ResourceWithImportState    = &SmartCacheResource{}
-	_ resource.ResourceWithValidateConfig = &SmartCacheResource{}
+	_ resource.Resource                   = &CacheResource{}
+	_ resource.ResourceWithConfigure      = &CacheResource{}
+	_ resource.ResourceWithImportState    = &CacheResource{}
+	_ resource.ResourceWithValidateConfig = &CacheResource{}
 )
 
-func SquaredUpSmartCacheResource() resource.Resource {
-	return &SmartCacheResource{}
+func SquaredUpCacheResource() resource.Resource {
+	return &CacheResource{}
 }
 
-type SmartCacheResource struct {
+type CacheResource struct {
 	client *SquaredUpClient
 }
 
-type squaredupSmartCache struct {
+type squaredupCache struct {
 	ID                      types.String         `tfsdk:"id"`
 	DisplayName             types.String         `tfsdk:"display_name"`
 	DataSourceID            types.String         `tfsdk:"data_source_id"`
@@ -56,31 +56,31 @@ type squaredupSmartCache struct {
 	TableName               types.String         `tfsdk:"table_name"`
 }
 
-func (r *SmartCacheResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_smartcache"
+func (r *CacheResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_cache"
 }
 
-func (r *SmartCacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "A SmartCache syncs the results of a data stream into SquaredUp on a schedule, so tiles and SQL queries read cached rows instead of calling the data source each time. " +
-			"Destroying this resource permanently deletes the cached data. Set `enabled = false` to pause syncing instead.",
+		MarkdownDescription: "A cache stores the results of a data stream in SquaredUp and syncs them at a set interval, so tiles and SQL queries read the cached rows instead of calling the data source each time. " +
+			"Destroying this resource permanently deletes the cached data, and tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the SmartCache",
+				MarkdownDescription: "The ID of the cache",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the SmartCache, between 2 and 24 characters. It must be unique among caches of the same data stream.",
+				MarkdownDescription: "The name of the cache, between 2 and 24 characters. It must be unique among caches of the same data stream.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 24),
 				},
 			},
 			"data_source_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the data source the SmartCache reads from. Changing this forces a new SmartCache to be created.",
+				MarkdownDescription: "The ID of the data source the cache reads from. Changing this forces a new cache to be created.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -96,7 +96,7 @@ func (r *SmartCacheResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				CustomType:          jsontypes.NormalizedType{},
 			},
 			"supported_scope": schema.StringAttribute{
-				MarkdownDescription: "How the data stream is scoped to objects: `single`, `list` or `none`. Changing this forces a new SmartCache to be created.",
+				MarkdownDescription: "How the data stream is scoped to objects: `single`, `list` or `none`. Changing this forces a new cache to be created.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("single", "list", "none"),
@@ -117,7 +117,7 @@ func (r *SmartCacheResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Default:             stringdefault.StaticString("last24hours"),
 			},
 			"frequency_minutes": schema.Int64Attribute{
-				MarkdownDescription: "How often the SmartCache syncs, in minutes: `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`. Defaults to `1440` (daily).",
+				MarkdownDescription: "The sync frequency: the interval between syncs, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`. Defaults to `1440` (24 hours).",
 				Optional:            true,
 				Computed:            true,
 				Default:             int64default.StaticInt64(1440),
@@ -163,7 +163,7 @@ func (r *SmartCacheResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether the SmartCache syncs. Disabling keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.",
+				MarkdownDescription: "Whether the cache syncs at its interval. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
@@ -181,8 +181,8 @@ func (r *SmartCacheResource) Schema(_ context.Context, _ resource.SchemaRequest,
 
 // ValidateConfig rejects storage settings the chosen sync mode ignores. The server drops them
 // silently, which would leave the applied state disagreeing with the configuration.
-func (r *SmartCacheResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var config squaredupSmartCache
+func (r *CacheResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config squaredupCache
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() || config.SyncMode.IsUnknown() {
 		return
@@ -190,7 +190,7 @@ func (r *SmartCacheResource) ValidateConfig(ctx context.Context, req resource.Va
 
 	if config.SyncMode.ValueString() == "incremental" {
 		if !config.RetainMirrors.IsNull() {
-			resp.Diagnostics.AddAttributeError(path.Root("retain_mirrors"), "Invalid SmartCache configuration",
+			resp.Diagnostics.AddAttributeError(path.Root("retain_mirrors"), "Invalid cache configuration",
 				"retain_mirrors only applies when sync_mode is \"full\".")
 		}
 		return
@@ -203,13 +203,13 @@ func (r *SmartCacheResource) ValidateConfig(ctx context.Context, req resource.Va
 	}
 	for attribute, isSet := range incrementalOnly {
 		if isSet {
-			resp.Diagnostics.AddAttributeError(path.Root(attribute), "Invalid SmartCache configuration",
+			resp.Diagnostics.AddAttributeError(path.Root(attribute), "Invalid cache configuration",
 				attribute+" only applies when sync_mode is \"incremental\".")
 		}
 	}
 }
 
-func (r *SmartCacheResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CacheResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -227,80 +227,80 @@ func (r *SmartCacheResource) Configure(_ context.Context, req resource.Configure
 	r.client = client
 }
 
-func (r *SmartCacheResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan squaredupSmartCache
+func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan squaredupCache
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dataStream, diags := smartCacheDataStream(plan)
+	dataStream, diags := cacheDataStream(plan)
 	resp.Diagnostics.Append(diags...)
-	scope, diags := smartCacheScope(plan.Scope)
+	scope, diags := cacheScope(plan.Scope)
 	resp.Diagnostics.Append(diags...)
-	storage, diags := smartCacheStorage(ctx, plan, false)
+	storage, diags := cacheStorage(ctx, plan, false)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	smartCache := SmartCacheCreate{
-		DisplayName:       plan.DisplayName.ValueString(),
-		PluginConfigID:    plan.DataSourceID.ValueString(),
-		DataStream:        dataStream,
-		SupportedScope:    plan.SupportedScope.ValueString(),
-		Scope:             scope,
-		Timeframe:         plan.Timeframe.ValueString(),
-		FrequencyMinutes:  plan.FrequencyMinutes.ValueInt64Pointer(),
-		SmartCacheStorage: storage,
+	cache := CacheCreate{
+		DisplayName:      plan.DisplayName.ValueString(),
+		PluginConfigID:   plan.DataSourceID.ValueString(),
+		DataStream:       dataStream,
+		SupportedScope:   plan.SupportedScope.ValueString(),
+		Scope:            scope,
+		Timeframe:        plan.Timeframe.ValueString(),
+		FrequencyMinutes: plan.FrequencyMinutes.ValueInt64Pointer(),
+		CacheStorage:     storage,
 	}
 
-	smartCacheId, err := r.client.CreateSmartCache(smartCache)
+	cacheId, err := r.client.CreateCache(cache)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to create SmartCache",
+			"Unable to create cache",
 			err.Error(),
 		)
 		return
 	}
 
-	// A new SmartCache is always created enabled
+	// A new cache is always created enabled
 	if !plan.Enabled.ValueBool() {
-		err = r.client.SetSmartCacheEnabled(smartCacheId, false)
+		err = r.client.SetCacheEnabled(cacheId, false)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to disable SmartCache",
+				"Unable to disable cache",
 				err.Error(),
 			)
 			return
 		}
 	}
 
-	r.readIntoState(ctx, smartCacheId, plan, &resp.State, &resp.Diagnostics)
+	r.readIntoState(ctx, cacheId, plan, &resp.State, &resp.Diagnostics)
 }
 
-func (r *SmartCacheResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state squaredupSmartCache
+func (r *CacheResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state squaredupCache
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	smartCache, err := r.client.GetSmartCache(state.ID.ValueString())
+	cache, err := r.client.GetCache(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to get SmartCache",
+			"Unable to get cache",
 			err.Error(),
 		)
 		return
 	}
 
-	if smartCache == nil {
+	if cache == nil {
 		resp.State.RemoveResource(ctx)
 		return
 	}
 
-	newState, diags := smartCacheState(ctx, smartCache, state)
+	newState, diags := cacheState(ctx, cache, state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -309,15 +309,15 @@ func (r *SmartCacheResource) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
-func (r *SmartCacheResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state squaredupSmartCache
+func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state squaredupCache
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	patch := SmartCachePatch{}
+	patch := CachePatch{}
 	changed := false
 
 	if !plan.DisplayName.Equal(state.DisplayName) {
@@ -326,14 +326,14 @@ func (r *SmartCacheResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if !plan.DataStreamID.Equal(state.DataStreamID) || !plan.DataStreamConfig.Equal(state.DataStreamConfig) {
-		dataStream, diags := smartCacheDataStream(plan)
+		dataStream, diags := cacheDataStream(plan)
 		resp.Diagnostics.Append(diags...)
 		patch.DataStream = &dataStream
 		changed = true
 	}
 
 	if !plan.Scope.Equal(state.Scope) {
-		scope, diags := smartCacheScope(plan.Scope)
+		scope, diags := cacheScope(plan.Scope)
 		resp.Diagnostics.Append(diags...)
 		if scope == nil {
 			// An empty list is how the API is told the scope was cleared
@@ -359,9 +359,9 @@ func (r *SmartCacheResource) Update(ctx context.Context, req resource.UpdateRequ
 		!plan.LastModifiedColumn.Equal(state.LastModifiedColumn) ||
 		(!plan.RetentionPeriodDays.IsUnknown() && !plan.RetentionPeriodDays.Equal(state.RetentionPeriodDays))
 	if storageChanged {
-		storage, diags := smartCacheStorage(ctx, plan, true)
+		storage, diags := cacheStorage(ctx, plan, true)
 		resp.Diagnostics.Append(diags...)
-		patch.SmartCacheStorage = storage
+		patch.CacheStorage = storage
 		changed = true
 	}
 
@@ -369,13 +369,13 @@ func (r *SmartCacheResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	smartCacheId := state.ID.ValueString()
+	cacheId := state.ID.ValueString()
 
 	if changed {
-		err := r.client.PatchSmartCache(smartCacheId, patch)
+		err := r.client.PatchCache(cacheId, patch)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to update SmartCache",
+				"Unable to update cache",
 				err.Error(),
 			)
 			return
@@ -383,55 +383,55 @@ func (r *SmartCacheResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if !plan.Enabled.Equal(state.Enabled) {
-		err := r.client.SetSmartCacheEnabled(smartCacheId, plan.Enabled.ValueBool())
+		err := r.client.SetCacheEnabled(cacheId, plan.Enabled.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to update SmartCache enabled state",
+				"Unable to update cache enabled state",
 				err.Error(),
 			)
 			return
 		}
 	}
 
-	r.readIntoState(ctx, smartCacheId, plan, &resp.State, &resp.Diagnostics)
+	r.readIntoState(ctx, cacheId, plan, &resp.State, &resp.Diagnostics)
 }
 
-func (r *SmartCacheResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state squaredupSmartCache
+func (r *CacheResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state squaredupCache
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.client.DeleteSmartCache(state.ID.ValueString())
+	err := r.client.DeleteCache(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to delete SmartCache",
+			"Unable to delete cache",
 			err.Error(),
 		)
 		return
 	}
 }
 
-func (r *SmartCacheResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *CacheResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // readIntoState fills computed attributes, such as defaults the server applies, after a write.
-func (r *SmartCacheResource) readIntoState(ctx context.Context, smartCacheId string, plan squaredupSmartCache, state stateSetter, diagnostics *diag.Diagnostics) {
-	smartCache, err := r.client.GetSmartCache(smartCacheId)
-	if err == nil && smartCache == nil {
-		err = fmt.Errorf("SmartCache %s was not found after it was written", smartCacheId)
+func (r *CacheResource) readIntoState(ctx context.Context, cacheId string, plan squaredupCache, state stateSetter, diagnostics *diag.Diagnostics) {
+	cache, err := r.client.GetCache(cacheId)
+	if err == nil && cache == nil {
+		err = fmt.Errorf("cache %s was not found after it was written", cacheId)
 	}
 	if err != nil {
 		diagnostics.AddError(
-			"Unable to get SmartCache",
+			"Unable to get cache",
 			err.Error(),
 		)
 		return
 	}
 
-	newState, diags := smartCacheState(ctx, smartCache, plan)
+	newState, diags := cacheState(ctx, cache, plan)
 	diagnostics.Append(diags...)
 	if diagnostics.HasError() {
 		return
@@ -444,8 +444,8 @@ type stateSetter interface {
 	Set(ctx context.Context, val interface{}) diag.Diagnostics
 }
 
-func smartCacheDataStream(plan squaredupSmartCache) (SmartCacheDataStream, diag.Diagnostics) {
-	dataStream := SmartCacheDataStream{ID: plan.DataStreamID.ValueString()}
+func cacheDataStream(plan squaredupCache) (CacheDataStream, diag.Diagnostics) {
+	dataStream := CacheDataStream{ID: plan.DataStreamID.ValueString()}
 	if plan.DataStreamConfig.IsNull() {
 		return dataStream, nil
 	}
@@ -454,7 +454,7 @@ func smartCacheDataStream(plan squaredupSmartCache) (SmartCacheDataStream, diag.
 	return dataStream, diags
 }
 
-func smartCacheScope(scope jsontypes.Normalized) (interface{}, diag.Diagnostics) {
+func cacheScope(scope jsontypes.Normalized) (interface{}, diag.Diagnostics) {
 	if scope.IsNull() {
 		return nil, nil
 	}
@@ -464,11 +464,11 @@ func smartCacheScope(scope jsontypes.Normalized) (interface{}, diag.Diagnostics)
 	return value, diags
 }
 
-// smartCacheStorage sends only the storage settings that are known, so the server applies its
+// cacheStorage sends only the storage settings that are known, so the server applies its
 // defaults for the rest. A patch keeps a setting that is left out, so an update of an incremental
 // cache sends a setting removed from the configuration as empty, to clear it.
-func smartCacheStorage(ctx context.Context, plan squaredupSmartCache, isUpdate bool) (SmartCacheStorage, diag.Diagnostics) {
-	storage := SmartCacheStorage{SyncMode: plan.SyncMode.ValueString()}
+func cacheStorage(ctx context.Context, plan squaredupCache, isUpdate bool) (CacheStorage, diag.Diagnostics) {
+	storage := CacheStorage{SyncMode: plan.SyncMode.ValueString()}
 	clearRemoved := isUpdate && storage.SyncMode == "incremental"
 
 	if !plan.RetainMirrors.IsUnknown() {
@@ -497,32 +497,32 @@ func smartCacheStorage(ctx context.Context, plan squaredupSmartCache, isUpdate b
 	return storage, diags
 }
 
-// smartCacheState maps a SmartCache read from the API onto Terraform state. The scope is kept
+// cacheState maps a Cache read from the API onto Terraform state. The scope is kept
 // from prior, because the server rewrites collection references into their queries on save.
-func smartCacheState(ctx context.Context, smartCache *SmartCacheRead, prior squaredupSmartCache) (squaredupSmartCache, diag.Diagnostics) {
+func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (squaredupCache, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	displayName := smartCache.DisplayName
+	displayName := cache.DisplayName
 	if displayName == "" {
-		displayName = smartCache.Name
+		displayName = cache.Name
 	}
 
-	state := squaredupSmartCache{
-		ID:               types.StringValue(smartCache.ID),
+	state := squaredupCache{
+		ID:               types.StringValue(cache.ID),
 		DisplayName:      types.StringValue(displayName),
 		Scope:            prior.Scope,
-		FrequencyMinutes: types.Int64Value(smartCache.FrequencyMinutes),
-		Enabled:          types.BoolValue(smartCache.Enabled),
+		FrequencyMinutes: types.Int64Value(cache.FrequencyMinutes),
+		Enabled:          types.BoolValue(cache.Enabled),
 		DataStreamConfig: prior.DataStreamConfig,
 		Timeframe:        prior.Timeframe,
 	}
 
-	if len(smartCache.Steps) == 0 {
-		diags.AddError("Unexpected SmartCache response", "The SmartCache "+smartCache.ID+" has no steps.")
+	if len(cache.Steps) == 0 {
+		diags.AddError("Unexpected cache response", "The cache "+cache.ID+" has no steps.")
 		return state, diags
 	}
-	step := smartCache.Steps[0]
-	mapping := step.SmartCacheMapping
+	step := cache.Steps[0]
+	mapping := step.CacheMapping
 
 	state.DataSourceID = types.StringValue(step.DataStream.PluginConfigID)
 	state.DataStreamID = types.StringValue(step.DataStream.ID)
@@ -532,14 +532,14 @@ func smartCacheState(ctx context.Context, smartCache *SmartCacheRead, prior squa
 	state.RetainMirrors = types.Int64PointerValue(mapping.RetainMirrors)
 	state.RetentionPeriodDays = types.Int64PointerValue(mapping.RetentionPeriodDays)
 
-	// An empty value is how a cleared setting comes back, see smartCacheStorage
+	// An empty value is how a cleared setting comes back, see cacheStorage
 	state.LastModifiedColumn = types.StringNull()
 	if mapping.LastModifiedColumn != nil && *mapping.LastModifiedColumn != "" {
 		state.LastModifiedColumn = types.StringValue(*mapping.LastModifiedColumn)
 	}
 
-	// Older caches may have no frequency stored, which the SquaredUp UI shows as daily
-	if smartCache.FrequencyMinutes == 0 {
+	// Older caches may have no frequency stored, which the SquaredUp UI shows as 24 hours
+	if cache.FrequencyMinutes == 0 {
 		state.FrequencyMinutes = types.Int64Value(1440)
 	}
 
@@ -551,7 +551,7 @@ func smartCacheState(ctx context.Context, smartCache *SmartCacheRead, prior squa
 	if len(step.DataStream.DataSourceConfig) > 0 {
 		dataSourceConfig, err := json.Marshal(step.DataStream.DataSourceConfig)
 		if err != nil {
-			diags.AddError("Unable to read SmartCache data stream config", err.Error())
+			diags.AddError("Unable to read cache data stream config", err.Error())
 			return state, diags
 		}
 		state.DataStreamConfig = jsontypes.NewNormalizedValue(string(dataSourceConfig))

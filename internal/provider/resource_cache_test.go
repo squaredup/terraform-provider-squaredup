@@ -10,19 +10,19 @@ import (
 	"github.com/pborman/uuid"
 )
 
-func smartCacheTestConfig(displayName string, frequencyMinutes string, enabled string) string {
+func cacheTestConfig(displayName string, frequencyMinutes string, enabled string) string {
 	return providerConfig + `
 data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data - SmartCache Test"
+	display_name     = "Sample Data - Cache Test"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
-resource "squaredup_workspace" "smartcache_workspace" {
-	display_name      = "SmartCache Test - ` + displayName + `"
+resource "squaredup_workspace" "cache_workspace" {
+	display_name      = "Cache Test - ` + displayName + `"
 	datasources_links = [squaredup_datasource.sample_data_source.id]
 }
 
@@ -31,13 +31,13 @@ data "squaredup_data_streams" "database_free_space" {
 	data_stream_definition_name = "database-free-space"
 }
 
-resource "squaredup_smartcache" "test" {
+resource "squaredup_cache" "test" {
 	display_name      = "` + displayName + `"
 	data_source_id    = squaredup_datasource.sample_data_source.id
 	data_stream_id    = data.squaredup_data_streams.database_free_space.data_streams[0].id
 	supported_scope   = "list"
 	scope = jsonencode({
-		workspaceId = squaredup_workspace.smartcache_workspace.id
+		workspaceId = squaredup_workspace.cache_workspace.id
 		query       = "g.V().has('type', 'sample-database')"
 	})
 	frequency_minutes = ` + frequencyMinutes + `
@@ -46,56 +46,56 @@ resource "squaredup_smartcache" "test" {
 `
 }
 
-func TestAccResourceSmartCache(t *testing.T) {
+func TestAccResourceCache(t *testing.T) {
 	// Cache names are capped at 24 characters
 	suffix := uuid.NewRandom().String()[:8]
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: smartCacheTestConfig("TF Cache "+suffix, "60", "true"),
+				Config: cacheTestConfig("TF Cache "+suffix, "60", "true"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "display_name", "TF Cache "+suffix),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "frequency_minutes", "60"),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "sync_mode", "full"),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "retain_mirrors", "1"),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "timeframe", "last24hours"),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "enabled", "true"),
-					resource.TestCheckResourceAttrSet("squaredup_smartcache.test", "id"),
-					resource.TestCheckResourceAttrSet("squaredup_smartcache.test", "table_name"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Cache "+suffix),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "60"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "sync_mode", "full"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "retain_mirrors", "1"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "timeframe", "last24hours"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "true"),
+					resource.TestCheckResourceAttrSet("squaredup_cache.test", "id"),
+					resource.TestCheckResourceAttrSet("squaredup_cache.test", "table_name"),
 				),
 			},
 			// Import Test
 			{
-				ResourceName:            "squaredup_smartcache.test",
+				ResourceName:            "squaredup_cache.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"scope"},
 			},
 			// Update Test
 			{
-				Config: smartCacheTestConfig("TF Cache Renamed "+suffix, "120", "false"),
+				Config: cacheTestConfig("TF Renamed "+suffix, "120", "false"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "display_name", "TF Cache Renamed "+suffix),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "frequency_minutes", "120"),
-					resource.TestCheckResourceAttr("squaredup_smartcache.test", "enabled", "false"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Renamed "+suffix),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "120"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "false"),
 				),
 			},
 		},
 	})
 }
 
-func TestSmartCacheStateMapsIncrementalStorage(t *testing.T) {
+func TestCacheStateMapsIncrementalStorage(t *testing.T) {
 	columns := []string{"id"}
 	lastModified := "updatedAt"
 	retention := int64(90)
-	read := &SmartCacheRead{
+	read := &CacheRead{
 		ID:               "smartcachedefinition-abc",
 		Name:             "Costs",
 		FrequencyMinutes: 60,
 		Enabled:          true,
-		Steps: []SmartCacheStep{{
-			DataStream: SmartCacheDataStream{
+		Steps: []CacheStep{{
+			DataStream: CacheDataStream{
 				ID:               "datastream-abc",
 				PluginConfigID:   "config-abc",
 				DataSourceConfig: map[string]interface{}{"region": "eu"},
@@ -104,15 +104,15 @@ func TestSmartCacheStateMapsIncrementalStorage(t *testing.T) {
 			SupportedScope: "none",
 		}},
 	}
-	read.Steps[0].SmartCacheMapping.TableName = "costs_table"
-	read.Steps[0].SmartCacheMapping.SyncMode = "incremental"
-	read.Steps[0].SmartCacheMapping.UniqueIdentifierColumns = &columns
-	read.Steps[0].SmartCacheMapping.LastModifiedColumn = &lastModified
-	read.Steps[0].SmartCacheMapping.RetentionPeriodDays = &retention
+	read.Steps[0].CacheMapping.TableName = "costs_table"
+	read.Steps[0].CacheMapping.SyncMode = "incremental"
+	read.Steps[0].CacheMapping.UniqueIdentifierColumns = &columns
+	read.Steps[0].CacheMapping.LastModifiedColumn = &lastModified
+	read.Steps[0].CacheMapping.RetentionPeriodDays = &retention
 
-	prior := squaredupSmartCache{Scope: jsontypes.NewNormalizedValue(`{"query":"g.V()"}`)}
+	prior := squaredupCache{Scope: jsontypes.NewNormalizedValue(`{"query":"g.V()"}`)}
 
-	state, diags := smartCacheState(context.Background(), read, prior)
+	state, diags := cacheState(context.Background(), read, prior)
 	if diags.HasError() {
 		t.Fatalf("unexpected diagnostics: %v", diags)
 	}
@@ -140,15 +140,15 @@ func TestSmartCacheStateMapsIncrementalStorage(t *testing.T) {
 	}
 }
 
-func TestSmartCacheStateTreatsClearedSettingsAsNull(t *testing.T) {
+func TestCacheStateTreatsClearedSettingsAsNull(t *testing.T) {
 	empty := ""
 	columns := []string{}
-	read := &SmartCacheRead{ID: "smartcachedefinition-abc", DisplayName: "Costs", Steps: []SmartCacheStep{{}}}
-	read.Steps[0].SmartCacheMapping.SyncMode = "incremental"
-	read.Steps[0].SmartCacheMapping.LastModifiedColumn = &empty
-	read.Steps[0].SmartCacheMapping.UniqueIdentifierColumns = &columns
+	read := &CacheRead{ID: "smartcachedefinition-abc", DisplayName: "Costs", Steps: []CacheStep{{}}}
+	read.Steps[0].CacheMapping.SyncMode = "incremental"
+	read.Steps[0].CacheMapping.LastModifiedColumn = &empty
+	read.Steps[0].CacheMapping.UniqueIdentifierColumns = &columns
 
-	state, diags := smartCacheState(context.Background(), read, squaredupSmartCache{})
+	state, diags := cacheState(context.Background(), read, squaredupCache{})
 	if diags.HasError() {
 		t.Fatalf("unexpected diagnostics: %v", diags)
 	}
@@ -161,8 +161,8 @@ func TestSmartCacheStateTreatsClearedSettingsAsNull(t *testing.T) {
 	}
 }
 
-func TestSmartCacheStorageClearsRemovedSettingsOnUpdate(t *testing.T) {
-	plan := squaredupSmartCache{
+func TestCacheStorageClearsRemovedSettingsOnUpdate(t *testing.T) {
+	plan := squaredupCache{
 		SyncMode:                types.StringValue("incremental"),
 		RetainMirrors:           types.Int64Unknown(),
 		RetentionPeriodDays:     types.Int64Value(30),
@@ -170,12 +170,12 @@ func TestSmartCacheStorageClearsRemovedSettingsOnUpdate(t *testing.T) {
 		UniqueIdentifierColumns: types.ListNull(types.StringType),
 	}
 
-	created, _ := smartCacheStorage(context.Background(), plan, false)
+	created, _ := cacheStorage(context.Background(), plan, false)
 	if created.LastModifiedColumn != nil || created.UniqueIdentifierColumns != nil || created.RetainMirrors != nil {
 		t.Errorf("create should leave unset settings to the server defaults, got %+v", created)
 	}
 
-	updated, _ := smartCacheStorage(context.Background(), plan, true)
+	updated, _ := cacheStorage(context.Background(), plan, true)
 	if updated.LastModifiedColumn == nil || *updated.LastModifiedColumn != "" {
 		t.Errorf("update should clear last_modified_column, got %v", updated.LastModifiedColumn)
 	}

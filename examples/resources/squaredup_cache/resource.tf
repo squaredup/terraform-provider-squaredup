@@ -19,7 +19,7 @@ data "squaredup_data_streams" "database_free_space" {
 }
 
 # Full sync: the cached rows are replaced on every sync
-resource "squaredup_smartcache" "database_free_space" {
+resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
   data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
@@ -33,7 +33,7 @@ resource "squaredup_smartcache" "database_free_space" {
   sync_mode         = "full"
   retain_mirrors    = 3
 
-  # Destroying a SmartCache deletes its cached data straight away
+  # Destroying a cache deletes its cached data straight away
   lifecycle {
     prevent_destroy = true
   }
@@ -46,7 +46,7 @@ data "squaredup_data_streams" "logs" {
 
 # Incremental sync: new and changed rows are merged into the cached rows.
 # Use column names returned by your data stream.
-resource "squaredup_smartcache" "logs" {
+resource "squaredup_cache" "logs" {
   display_name              = "Application Logs"
   data_source_id            = squaredup_datasource.sample_data_source.id
   data_stream_id            = data.squaredup_data_streams.logs.data_streams[0].id
@@ -59,5 +59,5 @@ resource "squaredup_smartcache" "logs" {
 }
 
 output "database_free_space_table" {
-  value = squaredup_smartcache.database_free_space.table_name
+  value = squaredup_cache.database_free_space.table_name
 }
