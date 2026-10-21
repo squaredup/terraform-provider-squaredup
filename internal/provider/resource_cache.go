@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -62,8 +63,13 @@ func (r *CacheResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "A cache stores the results of a data stream in SquaredUp and syncs them at a set interval, so tiles and SQL queries read the cached rows instead of calling the data source each time. " +
-			"Destroying this resource permanently deletes the cached data, and tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.",
+		MarkdownDescription: "A cache keeps a full copy of a data stream, so that tiles load fast and the results come back complete, even when the live source is slow or rate limited. " +
+			"Data is synced into the cache with a frequency that you choose (from every 5 minutes up to 24 hours), and tiles can then query the cached data instead of hitting the live data stream each time. " +
+			"Only raw data is cached, so one cache can be used by multiple tiles in different ways.\n\n" +
+			"Caches are available with an Enterprise plan. The API key must have full access to the data source. " +
+			"Creating a cache immediately triggers its first sync.\n\n" +
+			"Destroying this resource permanently deletes the cache's table and all its data from the warehouse, and any tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.\n\n" +
+			"See [Cache](https://docs.squaredup.com/features/connect-and-explore/data-streams/cache) for more about how caching works.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the cache",
@@ -73,14 +79,15 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the cache, between 2 and 24 characters. It must be unique among caches of the same data stream.",
+				MarkdownDescription: "The cache name. It must be 2 to 24 characters, include at least one letter or number, and be unique among caches of the same data stream. The table name is generated from the cache name when the cache is created, so renaming a cache doesn't change its table name.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 24),
+					stringvalidator.RegexMatches(regexp.MustCompile(`[a-zA-Z0-9]`), "must include at least one letter or number"),
 				},
 			},
 			"data_source_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the data source the cache reads from. Changing this forces a new cache to be created.",
+				MarkdownDescription: "The ID of the data source the cache is created from. A cache is treated as belonging to this data source. Changing this forces a new cache to be created.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -111,13 +118,13 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				CustomType:          jsontypes.NormalizedType{},
 			},
 			"timeframe": schema.StringAttribute{
-				MarkdownDescription: "The timeframe each sync requests, for example `last24hours` or `last7days`. Defaults to `last24hours`.",
+				MarkdownDescription: "The timeframe passed to the source data stream on each sync, for example `last24hours` or `last7days`. Defaults to `last24hours`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("last24hours"),
 			},
 			"frequency_minutes": schema.Int64Attribute{
-				MarkdownDescription: "The sync frequency: the interval between syncs, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`. Defaults to `1440` (24 hours).",
+				MarkdownDescription: "The sync frequency: how often the cache syncs the data, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`, from every 5 minutes up to the default of 24 hours. Sync more often if you need more up-to-date data, but leave enough time for each sync to finish.",
 				Optional:            true,
 				Computed:            true,
 				Default:             int64default.StaticInt64(1440),
@@ -163,13 +170,13 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether the cache syncs at its interval. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.",
+				MarkdownDescription: "Whether the cache syncs at its sync frequency. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 			},
 			"table_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the table holding the cached rows, for use in SQL queries",
+				MarkdownDescription: "The name of the table the cache's data is stored in, for use in SQL queries (Parameters > Advanced query, or the Advanced Query data stream on the Cache data source). It is built from the data source, data stream and cache name when the cache is created, and doesn't change if the cache is renamed.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),

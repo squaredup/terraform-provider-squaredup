@@ -18,7 +18,7 @@ data "squaredup_data_streams" "database_free_space" {
   data_stream_definition_name = "database-free-space"
 }
 
-# Full sync: the cached rows are replaced on every sync
+# Syncs every hour. Full sync replaces the cached rows on every sync.
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
@@ -33,7 +33,8 @@ resource "squaredup_cache" "database_free_space" {
   sync_mode         = "full"
   retain_mirrors    = 3
 
-  # Destroying a cache deletes its cached data straight away
+  # Destroying a cache permanently deletes its table and data, and tiles
+  # using the cache stop working immediately
   lifecycle {
     prevent_destroy = true
   }
@@ -44,7 +45,8 @@ data "squaredup_data_streams" "logs" {
   data_stream_definition_name = "logs"
 }
 
-# Incremental sync: new and changed rows are merged into the cached rows.
+# Syncs every 15 minutes. Incremental sync merges new and changed rows into
+# the cached rows.
 # Use column names returned by your data stream.
 resource "squaredup_cache" "logs" {
   display_name              = "Application Logs"
@@ -58,6 +60,8 @@ resource "squaredup_cache" "logs" {
   retention_period_days     = 7
 }
 
+# Reference the table name in SQL, for example in the Advanced Query data
+# stream on the Cache data source
 output "database_free_space_table" {
   value = squaredup_cache.database_free_space.table_name
 }

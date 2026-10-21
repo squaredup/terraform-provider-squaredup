@@ -3,12 +3,21 @@
 page_title: "squaredup_cache Resource - squaredup"
 subcategory: ""
 description: |-
-  A cache stores the results of a data stream in SquaredUp and syncs them at a set interval, so tiles and SQL queries read the cached rows instead of calling the data source each time. Destroying this resource permanently deletes the cached data, and tiles using the cache stop working immediately. Set enabled = false to pause syncing instead.
+  A cache keeps a full copy of a data stream, so that tiles load fast and the results come back complete, even when the live source is slow or rate limited. Data is synced into the cache with a frequency that you choose (from every 5 minutes up to 24 hours), and tiles can then query the cached data instead of hitting the live data stream each time. Only raw data is cached, so one cache can be used by multiple tiles in different ways.
+  Caches are available with an Enterprise plan. The API key must have full access to the data source. Creating a cache immediately triggers its first sync.
+  Destroying this resource permanently deletes the cache's table and all its data from the warehouse, and any tiles using the cache stop working immediately. Set enabled = false to pause syncing instead.
+  See Cache https://docs.squaredup.com/features/connect-and-explore/data-streams/cache for more about how caching works.
 ---
 
 # squaredup_cache (Resource)
 
-A cache stores the results of a data stream in SquaredUp and syncs them at a set interval, so tiles and SQL queries read the cached rows instead of calling the data source each time. Destroying this resource permanently deletes the cached data, and tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.
+A cache keeps a full copy of a data stream, so that tiles load fast and the results come back complete, even when the live source is slow or rate limited. Data is synced into the cache with a frequency that you choose (from every 5 minutes up to 24 hours), and tiles can then query the cached data instead of hitting the live data stream each time. Only raw data is cached, so one cache can be used by multiple tiles in different ways.
+
+Caches are available with an Enterprise plan. The API key must have full access to the data source. Creating a cache immediately triggers its first sync.
+
+Destroying this resource permanently deletes the cache's table and all its data from the warehouse, and any tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.
+
+See [Cache](https://docs.squaredup.com/features/connect-and-explore/data-streams/cache) for more about how caching works.
 
 ## Example Usage
 
@@ -33,7 +42,7 @@ data "squaredup_data_streams" "database_free_space" {
   data_stream_definition_name = "database-free-space"
 }
 
-# Full sync: the cached rows are replaced on every sync
+# Syncs every hour. Full sync replaces the cached rows on every sync.
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
@@ -48,7 +57,8 @@ resource "squaredup_cache" "database_free_space" {
   sync_mode         = "full"
   retain_mirrors    = 3
 
-  # Destroying a cache deletes its cached data straight away
+  # Destroying a cache permanently deletes its table and data, and tiles
+  # using the cache stop working immediately
   lifecycle {
     prevent_destroy = true
   }
@@ -59,7 +69,8 @@ data "squaredup_data_streams" "logs" {
   data_stream_definition_name = "logs"
 }
 
-# Incremental sync: new and changed rows are merged into the cached rows.
+# Syncs every 15 minutes. Incremental sync merges new and changed rows into
+# the cached rows.
 # Use column names returned by your data stream.
 resource "squaredup_cache" "logs" {
   display_name              = "Application Logs"
@@ -73,6 +84,8 @@ resource "squaredup_cache" "logs" {
   retention_period_days     = 7
 }
 
+# Reference the table name in SQL, for example in the Advanced Query data
+# stream on the Cache data source
 output "database_free_space_table" {
   value = squaredup_cache.database_free_space.table_name
 }
@@ -83,28 +96,28 @@ output "database_free_space_table" {
 
 ### Required
 
-- `data_source_id` (String) The ID of the data source the cache reads from. Changing this forces a new cache to be created.
+- `data_source_id` (String) The ID of the data source the cache is created from. A cache is treated as belonging to this data source. Changing this forces a new cache to be created.
 - `data_stream_id` (String) The ID of the data stream to cache
-- `display_name` (String) The name of the cache, between 2 and 24 characters. It must be unique among caches of the same data stream.
+- `display_name` (String) The cache name. It must be 2 to 24 characters, include at least one letter or number, and be unique among caches of the same data stream. The table name is generated from the cache name when the cache is created, so renaming a cache doesn't change its table name.
 - `supported_scope` (String) How the data stream is scoped to objects: `single`, `list` or `none`. Changing this forces a new cache to be created.
 
 ### Optional
 
 - `data_stream_config` (String) JSON configuration passed to the data stream (its `dataSourceConfig`), for data streams that take parameters
-- `enabled` (Boolean) Whether the cache syncs at its interval. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.
-- `frequency_minutes` (Number) The sync frequency: the interval between syncs, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`. Defaults to `1440` (24 hours).
+- `enabled` (Boolean) Whether the cache syncs at its sync frequency. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.
+- `frequency_minutes` (Number) The sync frequency: how often the cache syncs the data, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`, from every 5 minutes up to the default of 24 hours. Sync more often if you need more up-to-date data, but leave enough time for each sync to finish.
 - `last_modified_column` (String) Incremental sync only. The column holding when a row last changed
 - `retain_mirrors` (Number) Full sync only. How many previous syncs to keep: `1`, `3` or `5`. Defaults to `1`.
 - `retention_period_days` (Number) Incremental sync only. How long to keep rows, in days: `7`, `30`, `90` or `365`. Defaults to `30`.
 - `scope` (String) JSON scope selecting the objects to cache data for. The server resolves collection references into their queries, so changes made to the scope outside Terraform are not detected.
 - `sync_mode` (String) `full` replaces the cached rows on every sync. `incremental` merges new and changed rows into them. Defaults to `full`.
-- `timeframe` (String) The timeframe each sync requests, for example `last24hours` or `last7days`. Defaults to `last24hours`.
+- `timeframe` (String) The timeframe passed to the source data stream on each sync, for example `last24hours` or `last7days`. Defaults to `last24hours`.
 - `unique_identifier_columns` (List of String) Incremental sync only. The columns that identify a row, used to update rows rather than duplicate them
 
 ### Read-Only
 
 - `id` (String) The ID of the cache
-- `table_name` (String) The name of the table holding the cached rows, for use in SQL queries
+- `table_name` (String) The name of the table the cache's data is stored in, for use in SQL queries (Parameters > Advanced query, or the Advanced Query data stream on the Cache data source). It is built from the data source, data stream and cache name when the cache is created, and doesn't change if the cache is renamed.
 
 ## Import
 
