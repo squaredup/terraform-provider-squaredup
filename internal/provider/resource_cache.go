@@ -49,7 +49,6 @@ type squaredupCache struct {
 	ObjectIDs        types.Set            `tfsdk:"object_ids"`
 	Timeframe        types.String         `tfsdk:"timeframe"`
 	FrequencyMinutes types.Int64          `tfsdk:"frequency_minutes"`
-	RetainMirrors    types.Int64          `tfsdk:"retain_mirrors"`
 	Enabled          types.Bool           `tfsdk:"enabled"`
 	TableName        types.String         `tfsdk:"table_name"`
 }
@@ -140,14 +139,6 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					int64validator.OneOf(5, 15, 30, 60, 120, 180, 360, 720, 1440),
 				},
 			},
-			"retain_mirrors": schema.Int64Attribute{
-				MarkdownDescription: "How many previous syncs to keep: `1`, `3` or `5`. Each sync replaces the cached data with a full copy of the data stream. Defaults to `1`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.Int64{
-					int64validator.OneOf(1, 3, 5),
-				},
-			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "Whether the cache syncs at its sync frequency. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.",
 				Optional:            true,
@@ -206,7 +197,7 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Scope:            scope,
 		Timeframe:        plan.Timeframe.ValueString(),
 		FrequencyMinutes: plan.FrequencyMinutes.ValueInt64Pointer(),
-		CacheStorage:     cacheStorage(plan),
+		SyncMode:         "full",
 	}
 
 	cacheId, err := r.client.CreateCache(cache)
@@ -304,11 +295,6 @@ func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	if !plan.FrequencyMinutes.Equal(state.FrequencyMinutes) {
 		patch.FrequencyMinutes = plan.FrequencyMinutes.ValueInt64Pointer()
-		changed = true
-	}
-
-	if !plan.RetainMirrors.IsUnknown() && !plan.RetainMirrors.Equal(state.RetainMirrors) {
-		patch.CacheStorage = cacheStorage(plan)
 		changed = true
 	}
 
@@ -462,17 +448,6 @@ func scopeObjectIDs(scope interface{}) []string {
 	return ids
 }
 
-// cacheStorage always asks for a full sync, which is the only sync mode caches support. Retained
-// syncs are sent only when known, so the server applies its default otherwise.
-func cacheStorage(plan squaredupCache) CacheStorage {
-	storage := CacheStorage{SyncMode: "full"}
-	if !plan.RetainMirrors.IsUnknown() {
-		storage.RetainMirrors = plan.RetainMirrors.ValueInt64Pointer()
-	}
-
-	return storage
-}
-
 // cacheState maps a cache read from the API onto Terraform state. The scope is kept from prior,
 // because the server rewrites collection references into their queries on save. Object IDs are
 // read back unless the configuration uses scope, so a list changed outside Terraform shows as drift.
@@ -505,11 +480,10 @@ func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (sq
 	state.DataStreamID = types.StringValue(step.DataStream.ID)
 	state.SupportedScope = types.StringValue(step.SupportedScope)
 	state.TableName = types.StringValue(mapping.TableName)
-	state.RetainMirrors = types.Int64PointerValue(mapping.RetainMirrors)
 
 	if mapping.SyncMode != "" && mapping.SyncMode != "full" {
 		diags.AddWarning("Unsupported cache sync mode",
-			"The cache "+cache.ID+" uses \""+mapping.SyncMode+"\" sync, which this resource does not manage. Changing retain_mirrors switches it to full sync.")
+			"The cache "+cache.ID+" uses \""+mapping.SyncMode+"\" sync, which this resource does not manage. Caches created by this resource always use full sync.")
 	}
 
 	// Older caches may have no frequency stored, which the SquaredUp UI shows as 24 hours

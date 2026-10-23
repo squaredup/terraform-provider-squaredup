@@ -48,7 +48,7 @@ data "squaredup_nodes" "database_2" {
   node_source_id = "sample-database-2"
 }
 
-# Syncs every hour for two objects, keeping the last 3 syncs
+# Syncs every hour for two objects
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
@@ -60,7 +60,6 @@ resource "squaredup_cache" "database_free_space" {
   ]
   timeframe         = "last24hours"
   frequency_minutes = 60
-  retain_mirrors    = 3
 
   # Destroying a cache permanently deletes its table and data, and tiles
   # using the cache stop working immediately
@@ -106,7 +105,6 @@ output "database_free_space_table" {
 - `enabled` (Boolean) Whether the cache syncs at its sync frequency. Disabling stops syncing and keeps the cached data for 48 hours before it is cleaned up. Defaults to `true`.
 - `frequency_minutes` (Number) The sync frequency: how often the cache syncs the data, in minutes. One of `5`, `15`, `30`, `60`, `120`, `180`, `360`, `720` or `1440`, from every 5 minutes up to the default of 24 hours. Sync more often if you need more up-to-date data, but leave enough time for each sync to finish.
 - `object_ids` (Set of String) The IDs of the objects to cache data for, for example from the `squaredup_nodes` data source. Conflicts with `scope`.
-- `retain_mirrors` (Number) How many previous syncs to keep: `1`, `3` or `5`. Each sync replaces the cached data with a full copy of the data stream. Defaults to `1`.
 - `scope` (String) JSON scope selecting the objects to cache data for, for scopes `object_ids` can't express, such as a Gremlin query. A collection reference is replaced with the collection's query when the cache is saved, so later changes to the collection don't change the cache. Changes made to this scope outside Terraform are not detected. Conflicts with `object_ids`.
 - `timeframe` (String) The timeframe passed to the source data stream on each sync, for example `last24hours` or `last7days`. Defaults to `last24hours`.
 

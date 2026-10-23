@@ -67,7 +67,6 @@ func TestAccResourceCache(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Cache "+suffix),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "60"),
-					resource.TestCheckResourceAttr("squaredup_cache.test", "retain_mirrors", "1"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "timeframe", "last24hours"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "object_ids.#", "2"),
@@ -96,7 +95,6 @@ func TestAccResourceCache(t *testing.T) {
 }
 
 func TestCacheStateMapsReadResponse(t *testing.T) {
-	retainMirrors := int64(3)
 	read := &CacheRead{
 		ID:               "smartcachedefinition-abc",
 		Name:             "Costs",
@@ -114,7 +112,6 @@ func TestCacheStateMapsReadResponse(t *testing.T) {
 	}
 	read.Steps[0].CacheMapping.TableName = "costs_table"
 	read.Steps[0].CacheMapping.SyncMode = "full"
-	read.Steps[0].CacheMapping.RetainMirrors = &retainMirrors
 
 	prior := squaredupCache{Scope: jsontypes.NewNormalizedValue(`{"query":"g.V()"}`)}
 
@@ -138,9 +135,6 @@ func TestCacheStateMapsReadResponse(t *testing.T) {
 	if state.Timeframe.ValueString() != "last7days" || state.TableName.ValueString() != "costs_table" {
 		t.Errorf("timeframe or table_name not mapped: %v, %v", state.Timeframe, state.TableName)
 	}
-	if state.RetainMirrors.ValueInt64() != 3 {
-		t.Errorf("retain_mirrors = %v, want 3", state.RetainMirrors)
-	}
 }
 
 func TestCacheStateDefaultsMissingFrequencyToDaily(t *testing.T) {
@@ -163,18 +157,6 @@ func TestCacheStateWarnsWhenSyncIsNotFull(t *testing.T) {
 	_, diags := cacheState(context.Background(), read, squaredupCache{})
 	if diags.HasError() || diags.WarningsCount() != 1 {
 		t.Errorf("a cache that is not a full sync should warn without failing, got %v", diags)
-	}
-}
-
-func TestCacheStorageAlwaysRequestsFullSync(t *testing.T) {
-	storage := cacheStorage(squaredupCache{RetainMirrors: types.Int64Unknown()})
-	if storage.SyncMode != "full" || storage.RetainMirrors != nil {
-		t.Errorf("an unknown retain_mirrors should be left to the server default, got %+v", storage)
-	}
-
-	storage = cacheStorage(squaredupCache{RetainMirrors: types.Int64Value(5)})
-	if storage.SyncMode != "full" || storage.RetainMirrors == nil || *storage.RetainMirrors != 5 {
-		t.Errorf("retain_mirrors should be sent with a full sync, got %+v", storage)
 	}
 }
 

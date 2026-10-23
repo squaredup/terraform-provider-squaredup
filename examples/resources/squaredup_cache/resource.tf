@@ -24,7 +24,7 @@ data "squaredup_nodes" "database_2" {
   node_source_id = "sample-database-2"
 }
 
-# Syncs every hour for two objects, keeping the last 3 syncs
+# Syncs every hour for two objects
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
@@ -36,7 +36,6 @@ resource "squaredup_cache" "database_free_space" {
   ]
   timeframe         = "last24hours"
   frequency_minutes = 60
-  retain_mirrors    = 3
 
   # Destroying a cache permanently deletes its table and data, and tiles
   # using the cache stop working immediately

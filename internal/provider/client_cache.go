@@ -13,11 +13,6 @@ type CacheDataStream struct {
 	DataSourceConfig map[string]interface{} `json:"dataSourceConfig,omitempty"`
 }
 
-type CacheStorage struct {
-	SyncMode      string `json:"syncMode,omitempty"`
-	RetainMirrors *int64 `json:"retainMirrors,omitempty"`
-}
-
 type CacheCreate struct {
 	DisplayName      string          `json:"displayName"`
 	PluginConfigID   string          `json:"pluginConfigId"`
@@ -26,7 +21,8 @@ type CacheCreate struct {
 	Scope            interface{}     `json:"scope,omitempty"`
 	Timeframe        string          `json:"timeframe,omitempty"`
 	FrequencyMinutes *int64          `json:"frequencyMinutes,omitempty"`
-	CacheStorage
+	// Caches only support full sync
+	SyncMode string `json:"syncMode"`
 }
 
 // CachePatch only carries the fields that changed, as a rename or a data stream change
@@ -37,7 +33,6 @@ type CachePatch struct {
 	Scope            interface{}      `json:"scope,omitempty"`
 	Timeframe        *string          `json:"timeframe,omitempty"`
 	FrequencyMinutes *int64           `json:"frequencyMinutes,omitempty"`
-	CacheStorage
 }
 
 type CacheStep struct {
@@ -47,7 +42,7 @@ type CacheStep struct {
 	Scope          interface{}     `json:"scope"`
 	CacheMapping   struct {
 		TableName string `json:"tableName"`
-		CacheStorage
+		SyncMode  string `json:"syncMode"`
 	} `json:"smartCacheMapping"`
 }
 
