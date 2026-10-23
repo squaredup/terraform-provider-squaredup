@@ -83,7 +83,7 @@ func (c *SquaredUpClient) CreateCache(cache CacheCreate) (string, error) {
 	return created.CacheDefinitionID, nil
 }
 
-// GetCache returns nil without an error when the Cache does not exist.
+// GetCache returns nil without an error when the cache does not exist.
 func (c *SquaredUpClient) GetCache(cacheId string) (*CacheRead, error) {
 	req, err := http.NewRequest("GET", c.baseURL+"/api/smartcache/"+cacheId, nil)
 	if err != nil {
