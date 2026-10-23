@@ -63,7 +63,7 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		MarkdownDescription: "A cache keeps a full copy of a data stream, so that tiles load fast and the results come back complete, even when the live source is slow or rate limited. " +
 			"Data is synced into the cache with a frequency that you choose (from every 5 minutes up to 24 hours), and tiles can then query the cached data instead of hitting the live data stream each time. " +
 			"Only raw data is cached, so one cache can be used by multiple tiles in different ways.\n\n" +
-			"Caches are available with an Enterprise plan. The API key must have full access to the data source. " +
+			"Caches are available with an Enterprise plan. " +
 			"Creating a cache immediately triggers its first sync.\n\n" +
 			"Destroying this resource permanently deletes the cache's table and all its data from the warehouse, and any tiles using the cache stop working immediately. Set `enabled = false` to pause syncing instead.\n\n" +
 			"See [Cache](https://docs.squaredup.com/features/connect-and-explore/data-streams/cache) for more about how caching works.",
