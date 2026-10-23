@@ -15,14 +15,15 @@ import (
 	"github.com/pborman/uuid"
 )
 
-func cacheTestConfig(displayName string, frequencyMinutes string, enabled string, objectIDs string) string {
+// suffix keeps the data source name unique, as CI runs these tests in parallel against one tenant.
+func cacheTestConfig(suffix string, displayName string, frequencyMinutes string, enabled string, objectIDs string) string {
 	return providerConfig + `
 data "squaredup_datasources" "sample_data" {
 	data_source_name = "Sample Data"
 }
 
 resource "squaredup_datasource" "sample_data_source" {
-	display_name     = "Sample Data - Cache Test"
+	display_name     = "Sample Data - Cache Test - ` + suffix + `"
 	data_source_name = data.squaredup_datasources.sample_data.plugins[0].display_name
 }
 
@@ -71,7 +72,7 @@ func TestAccResourceCache(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: cacheTestConfig("TF Cache "+suffix, "60", "true", bothDatabases),
+				Config: cacheTestConfig(suffix, "TF Cache "+suffix, "60", "true", bothDatabases),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Cache "+suffix),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "60"),
@@ -95,7 +96,7 @@ func TestAccResourceCache(t *testing.T) {
 			},
 			// Update Test
 			{
-				Config: cacheTestConfig("TF Renamed "+suffix, "120", "false", oneDatabase),
+				Config: cacheTestConfig(suffix, "TF Renamed "+suffix, "120", "false", oneDatabase),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction("squaredup_cache.test", plancheck.ResourceActionUpdate),
