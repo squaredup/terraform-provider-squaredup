@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+// APIError is returned for any non-success response, so callers can act on the status code.
+type APIError struct {
+	StatusCode int
+	Body       string
+}
+
+func (e *APIError) Error() string {
+	return fmt.Sprintf("status: %d, body: %s", e.StatusCode, e.Body)
+}
+
 type SquaredUpClient struct {
 	baseURL    string
 	apiKey     string
@@ -77,7 +87,7 @@ func (c *SquaredUpClient) doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	if res.StatusCode != 200 && res.StatusCode != 201 && res.StatusCode != 204 {
-		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, body)
+		return nil, &APIError{StatusCode: res.StatusCode, Body: string(body)}
 	}
 
 	return body, nil
