@@ -24,8 +24,7 @@ data "squaredup_nodes" "database_2" {
   node_source_id = "sample-database-2"
 }
 
-# Syncs every hour for two objects. Full sync replaces the cached rows on
-# every sync.
+# Syncs every hour for two objects, keeping the last 3 syncs
 resource "squaredup_cache" "database_free_space" {
   display_name    = "Database Free Space"
   data_source_id  = squaredup_datasource.sample_data_source.id
@@ -37,7 +36,6 @@ resource "squaredup_cache" "database_free_space" {
   ]
   timeframe         = "last24hours"
   frequency_minutes = 60
-  sync_mode         = "full"
   retain_mirrors    = 3
 
   # Destroying a cache permanently deletes its table and data, and tiles
@@ -47,11 +45,9 @@ resource "squaredup_cache" "database_free_space" {
   }
 }
 
-# Syncs every 15 minutes for every database, selected with a Gremlin query.
-# Incremental sync merges new and changed rows into the cached rows. The
-# column names are the data stream's column names.
-resource "squaredup_cache" "database_free_space_history" {
-  display_name    = "Free Space History"
+# Syncs every 15 minutes for every database, selected with a Gremlin query
+resource "squaredup_cache" "all_databases" {
+  display_name    = "All Databases"
   data_source_id  = squaredup_datasource.sample_data_source.id
   data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
   supported_scope = "list"
@@ -60,11 +56,7 @@ resource "squaredup_cache" "database_free_space_history" {
     bindings    = {}
     queryDetail = {}
   })
-  frequency_minutes         = 15
-  sync_mode                 = "incremental"
-  unique_identifier_columns = ["data.database", "data.timestamp"]
-  last_modified_column      = "data.timestamp"
-  retention_period_days     = 7
+  frequency_minutes = 15
 }
 
 # Reference the table name in SQL, for example in the Advanced Query data

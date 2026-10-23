@@ -67,7 +67,6 @@ func TestAccResourceCache(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Cache "+suffix),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "60"),
-					resource.TestCheckResourceAttr("squaredup_cache.test", "sync_mode", "full"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "retain_mirrors", "1"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "timeframe", "last24hours"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "true"),
@@ -96,10 +95,8 @@ func TestAccResourceCache(t *testing.T) {
 	})
 }
 
-func TestCacheStateMapsIncrementalStorage(t *testing.T) {
-	columns := []string{"id"}
-	lastModified := "updatedAt"
-	retention := int64(90)
+func TestCacheStateMapsReadResponse(t *testing.T) {
+	retainMirrors := int64(3)
 	read := &CacheRead{
 		ID:               "smartcachedefinition-abc",
 		Name:             "Costs",
@@ -116,15 +113,13 @@ func TestCacheStateMapsIncrementalStorage(t *testing.T) {
 		}},
 	}
 	read.Steps[0].CacheMapping.TableName = "costs_table"
-	read.Steps[0].CacheMapping.SyncMode = "incremental"
-	read.Steps[0].CacheMapping.UniqueIdentifierColumns = &columns
-	read.Steps[0].CacheMapping.LastModifiedColumn = &lastModified
-	read.Steps[0].CacheMapping.RetentionPeriodDays = &retention
+	read.Steps[0].CacheMapping.SyncMode = "full"
+	read.Steps[0].CacheMapping.RetainMirrors = &retainMirrors
 
 	prior := squaredupCache{Scope: jsontypes.NewNormalizedValue(`{"query":"g.V()"}`)}
 
 	state, diags := cacheState(context.Background(), read, prior)
-	if diags.HasError() {
+	if diags.HasError() || diags.WarningsCount() > 0 {
 		t.Fatalf("unexpected diagnostics: %v", diags)
 	}
 
@@ -143,55 +138,43 @@ func TestCacheStateMapsIncrementalStorage(t *testing.T) {
 	if state.Timeframe.ValueString() != "last7days" || state.TableName.ValueString() != "costs_table" {
 		t.Errorf("timeframe or table_name not mapped: %v, %v", state.Timeframe, state.TableName)
 	}
-	if !state.RetainMirrors.IsNull() || state.RetentionPeriodDays.ValueInt64() != 90 {
-		t.Errorf("storage not mapped: retain_mirrors %v, retention_period_days %v", state.RetainMirrors, state.RetentionPeriodDays)
-	}
-	if state.LastModifiedColumn.ValueString() != "updatedAt" || len(state.UniqueIdentifierColumns.Elements()) != 1 {
-		t.Errorf("incremental columns not mapped: %v, %v", state.LastModifiedColumn, state.UniqueIdentifierColumns)
+	if state.RetainMirrors.ValueInt64() != 3 {
+		t.Errorf("retain_mirrors = %v, want 3", state.RetainMirrors)
 	}
 }
 
-func TestCacheStateTreatsClearedSettingsAsNull(t *testing.T) {
-	empty := ""
-	columns := []string{}
+func TestCacheStateDefaultsMissingFrequencyToDaily(t *testing.T) {
 	read := &CacheRead{ID: "smartcachedefinition-abc", DisplayName: "Costs", Steps: []CacheStep{{}}}
-	read.Steps[0].CacheMapping.SyncMode = "incremental"
-	read.Steps[0].CacheMapping.LastModifiedColumn = &empty
-	read.Steps[0].CacheMapping.UniqueIdentifierColumns = &columns
 
 	state, diags := cacheState(context.Background(), read, squaredupCache{})
 	if diags.HasError() {
 		t.Fatalf("unexpected diagnostics: %v", diags)
 	}
 
-	if !state.LastModifiedColumn.IsNull() || !state.UniqueIdentifierColumns.IsNull() {
-		t.Errorf("cleared settings should be null, got %v, %v", state.LastModifiedColumn, state.UniqueIdentifierColumns)
-	}
 	if state.FrequencyMinutes.ValueInt64() != 1440 {
-		t.Errorf("a missing frequency should read as daily, got %d", state.FrequencyMinutes.ValueInt64())
+		t.Errorf("a missing frequency should read as 24 hours, got %d", state.FrequencyMinutes.ValueInt64())
 	}
 }
 
-func TestCacheStorageClearsRemovedSettingsOnUpdate(t *testing.T) {
-	plan := squaredupCache{
-		SyncMode:                types.StringValue("incremental"),
-		RetainMirrors:           types.Int64Unknown(),
-		RetentionPeriodDays:     types.Int64Value(30),
-		LastModifiedColumn:      types.StringNull(),
-		UniqueIdentifierColumns: types.ListNull(types.StringType),
+func TestCacheStateWarnsWhenSyncIsNotFull(t *testing.T) {
+	read := &CacheRead{ID: "smartcachedefinition-abc", DisplayName: "Costs", Steps: []CacheStep{{}}}
+	read.Steps[0].CacheMapping.SyncMode = "incremental"
+
+	_, diags := cacheState(context.Background(), read, squaredupCache{})
+	if diags.HasError() || diags.WarningsCount() != 1 {
+		t.Errorf("a cache that is not a full sync should warn without failing, got %v", diags)
+	}
+}
+
+func TestCacheStorageAlwaysRequestsFullSync(t *testing.T) {
+	storage := cacheStorage(squaredupCache{RetainMirrors: types.Int64Unknown()})
+	if storage.SyncMode != "full" || storage.RetainMirrors != nil {
+		t.Errorf("an unknown retain_mirrors should be left to the server default, got %+v", storage)
 	}
 
-	created, _ := cacheStorage(context.Background(), plan, false)
-	if created.LastModifiedColumn != nil || created.UniqueIdentifierColumns != nil || created.RetainMirrors != nil {
-		t.Errorf("create should leave unset settings to the server defaults, got %+v", created)
-	}
-
-	updated, _ := cacheStorage(context.Background(), plan, true)
-	if updated.LastModifiedColumn == nil || *updated.LastModifiedColumn != "" {
-		t.Errorf("update should clear last_modified_column, got %v", updated.LastModifiedColumn)
-	}
-	if updated.UniqueIdentifierColumns == nil || len(*updated.UniqueIdentifierColumns) != 0 {
-		t.Errorf("update should clear unique_identifier_columns, got %v", updated.UniqueIdentifierColumns)
+	storage = cacheStorage(squaredupCache{RetainMirrors: types.Int64Value(5)})
+	if storage.SyncMode != "full" || storage.RetainMirrors == nil || *storage.RetainMirrors != 5 {
+		t.Errorf("retain_mirrors should be sent with a full sync, got %+v", storage)
 	}
 }
 

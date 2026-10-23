@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -26,10 +25,9 @@ import (
 )
 
 var (
-	_ resource.Resource                   = &CacheResource{}
-	_ resource.ResourceWithConfigure      = &CacheResource{}
-	_ resource.ResourceWithImportState    = &CacheResource{}
-	_ resource.ResourceWithValidateConfig = &CacheResource{}
+	_ resource.Resource                = &CacheResource{}
+	_ resource.ResourceWithConfigure   = &CacheResource{}
+	_ resource.ResourceWithImportState = &CacheResource{}
 )
 
 func SquaredUpCacheResource() resource.Resource {
@@ -41,23 +39,19 @@ type CacheResource struct {
 }
 
 type squaredupCache struct {
-	ID                      types.String         `tfsdk:"id"`
-	DisplayName             types.String         `tfsdk:"display_name"`
-	DataSourceID            types.String         `tfsdk:"data_source_id"`
-	DataStreamID            types.String         `tfsdk:"data_stream_id"`
-	DataStreamConfig        jsontypes.Normalized `tfsdk:"data_stream_config"`
-	SupportedScope          types.String         `tfsdk:"supported_scope"`
-	Scope                   jsontypes.Normalized `tfsdk:"scope"`
-	ObjectIDs               types.Set            `tfsdk:"object_ids"`
-	Timeframe               types.String         `tfsdk:"timeframe"`
-	FrequencyMinutes        types.Int64          `tfsdk:"frequency_minutes"`
-	SyncMode                types.String         `tfsdk:"sync_mode"`
-	RetainMirrors           types.Int64          `tfsdk:"retain_mirrors"`
-	UniqueIdentifierColumns types.List           `tfsdk:"unique_identifier_columns"`
-	LastModifiedColumn      types.String         `tfsdk:"last_modified_column"`
-	RetentionPeriodDays     types.Int64          `tfsdk:"retention_period_days"`
-	Enabled                 types.Bool           `tfsdk:"enabled"`
-	TableName               types.String         `tfsdk:"table_name"`
+	ID               types.String         `tfsdk:"id"`
+	DisplayName      types.String         `tfsdk:"display_name"`
+	DataSourceID     types.String         `tfsdk:"data_source_id"`
+	DataStreamID     types.String         `tfsdk:"data_stream_id"`
+	DataStreamConfig jsontypes.Normalized `tfsdk:"data_stream_config"`
+	SupportedScope   types.String         `tfsdk:"supported_scope"`
+	Scope            jsontypes.Normalized `tfsdk:"scope"`
+	ObjectIDs        types.Set            `tfsdk:"object_ids"`
+	Timeframe        types.String         `tfsdk:"timeframe"`
+	FrequencyMinutes types.Int64          `tfsdk:"frequency_minutes"`
+	RetainMirrors    types.Int64          `tfsdk:"retain_mirrors"`
+	Enabled          types.Bool           `tfsdk:"enabled"`
+	TableName        types.String         `tfsdk:"table_name"`
 }
 
 func (r *CacheResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -146,41 +140,12 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					int64validator.OneOf(5, 15, 30, 60, 120, 180, 360, 720, 1440),
 				},
 			},
-			"sync_mode": schema.StringAttribute{
-				MarkdownDescription: "`full` replaces the cached rows on every sync. `incremental` merges new and changed rows into them. Defaults to `full`.",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("full"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("full", "incremental"),
-				},
-			},
 			"retain_mirrors": schema.Int64Attribute{
-				MarkdownDescription: "Full sync only. How many previous syncs to keep: `1`, `3` or `5`. Defaults to `1`.",
+				MarkdownDescription: "How many previous syncs to keep: `1`, `3` or `5`. Each sync replaces the cached data with a full copy of the data stream. Defaults to `1`.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.Int64{
 					int64validator.OneOf(1, 3, 5),
-				},
-			},
-			"unique_identifier_columns": schema.ListAttribute{
-				MarkdownDescription: "Incremental sync only. The columns that identify a row, used to update rows rather than duplicate them",
-				Optional:            true,
-				ElementType:         types.StringType,
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-				},
-			},
-			"last_modified_column": schema.StringAttribute{
-				MarkdownDescription: "Incremental sync only. The column holding when a row last changed",
-				Optional:            true,
-			},
-			"retention_period_days": schema.Int64Attribute{
-				MarkdownDescription: "Incremental sync only. How long to keep rows, in days: `7`, `30`, `90` or `365`. Defaults to `30`.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.Int64{
-					int64validator.OneOf(7, 30, 90, 365),
 				},
 			},
 			"enabled": schema.BoolAttribute{
@@ -197,36 +162,6 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 		},
-	}
-}
-
-// ValidateConfig rejects storage settings the chosen sync mode ignores. The server drops them
-// silently, which would leave the applied state disagreeing with the configuration.
-func (r *CacheResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var config squaredupCache
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if resp.Diagnostics.HasError() || config.SyncMode.IsUnknown() {
-		return
-	}
-
-	if config.SyncMode.ValueString() == "incremental" {
-		if !config.RetainMirrors.IsNull() {
-			resp.Diagnostics.AddAttributeError(path.Root("retain_mirrors"), "Invalid cache configuration",
-				"retain_mirrors only applies when sync_mode is \"full\".")
-		}
-		return
-	}
-
-	incrementalOnly := map[string]bool{
-		"unique_identifier_columns": !config.UniqueIdentifierColumns.IsNull(),
-		"last_modified_column":      !config.LastModifiedColumn.IsNull(),
-		"retention_period_days":     !config.RetentionPeriodDays.IsNull(),
-	}
-	for attribute, isSet := range incrementalOnly {
-		if isSet {
-			resp.Diagnostics.AddAttributeError(path.Root(attribute), "Invalid cache configuration",
-				attribute+" only applies when sync_mode is \"incremental\".")
-		}
 	}
 }
 
@@ -259,8 +194,6 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 	resp.Diagnostics.Append(diags...)
 	scope, diags := cacheScope(ctx, plan)
 	resp.Diagnostics.Append(diags...)
-	storage, diags := cacheStorage(ctx, plan, false)
-	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -273,7 +206,7 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Scope:            scope,
 		Timeframe:        plan.Timeframe.ValueString(),
 		FrequencyMinutes: plan.FrequencyMinutes.ValueInt64Pointer(),
-		CacheStorage:     storage,
+		CacheStorage:     cacheStorage(plan),
 	}
 
 	cacheId, err := r.client.CreateCache(cache)
@@ -374,15 +307,8 @@ func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		changed = true
 	}
 
-	storageChanged := !plan.SyncMode.Equal(state.SyncMode) ||
-		(!plan.RetainMirrors.IsUnknown() && !plan.RetainMirrors.Equal(state.RetainMirrors)) ||
-		!plan.UniqueIdentifierColumns.Equal(state.UniqueIdentifierColumns) ||
-		!plan.LastModifiedColumn.Equal(state.LastModifiedColumn) ||
-		(!plan.RetentionPeriodDays.IsUnknown() && !plan.RetentionPeriodDays.Equal(state.RetentionPeriodDays))
-	if storageChanged {
-		storage, diags := cacheStorage(ctx, plan, true)
-		resp.Diagnostics.Append(diags...)
-		patch.CacheStorage = storage
+	if !plan.RetainMirrors.IsUnknown() && !plan.RetainMirrors.Equal(state.RetainMirrors) {
+		patch.CacheStorage = cacheStorage(plan)
 		changed = true
 	}
 
@@ -536,37 +462,15 @@ func scopeObjectIDs(scope interface{}) []string {
 	return ids
 }
 
-// cacheStorage sends only the storage settings that are known, so the server applies its
-// defaults for the rest. A patch keeps a setting that is left out, so an update of an incremental
-// cache sends a setting removed from the configuration as empty, to clear it.
-func cacheStorage(ctx context.Context, plan squaredupCache, isUpdate bool) (CacheStorage, diag.Diagnostics) {
-	storage := CacheStorage{SyncMode: plan.SyncMode.ValueString()}
-	clearRemoved := isUpdate && storage.SyncMode == "incremental"
-
+// cacheStorage always asks for a full sync, which is the only sync mode caches support. Retained
+// syncs are sent only when known, so the server applies its default otherwise.
+func cacheStorage(plan squaredupCache) CacheStorage {
+	storage := CacheStorage{SyncMode: "full"}
 	if !plan.RetainMirrors.IsUnknown() {
 		storage.RetainMirrors = plan.RetainMirrors.ValueInt64Pointer()
 	}
-	if !plan.RetentionPeriodDays.IsUnknown() {
-		storage.RetentionPeriodDays = plan.RetentionPeriodDays.ValueInt64Pointer()
-	}
 
-	storage.LastModifiedColumn = plan.LastModifiedColumn.ValueStringPointer()
-	if storage.LastModifiedColumn == nil && clearRemoved {
-		empty := ""
-		storage.LastModifiedColumn = &empty
-	}
-
-	columns := []string{}
-	if plan.UniqueIdentifierColumns.IsNull() {
-		if clearRemoved {
-			storage.UniqueIdentifierColumns = &columns
-		}
-		return storage, nil
-	}
-
-	diags := plan.UniqueIdentifierColumns.ElementsAs(ctx, &columns, false)
-	storage.UniqueIdentifierColumns = &columns
-	return storage, diags
+	return storage
 }
 
 // cacheState maps a cache read from the API onto Terraform state. The scope is kept from prior,
@@ -601,14 +505,11 @@ func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (sq
 	state.DataStreamID = types.StringValue(step.DataStream.ID)
 	state.SupportedScope = types.StringValue(step.SupportedScope)
 	state.TableName = types.StringValue(mapping.TableName)
-	state.SyncMode = types.StringValue(mapping.SyncMode)
 	state.RetainMirrors = types.Int64PointerValue(mapping.RetainMirrors)
-	state.RetentionPeriodDays = types.Int64PointerValue(mapping.RetentionPeriodDays)
 
-	// An empty value is how a cleared setting comes back, see cacheStorage
-	state.LastModifiedColumn = types.StringNull()
-	if mapping.LastModifiedColumn != nil && *mapping.LastModifiedColumn != "" {
-		state.LastModifiedColumn = types.StringValue(*mapping.LastModifiedColumn)
+	if mapping.SyncMode != "" && mapping.SyncMode != "full" {
+		diags.AddWarning("Unsupported cache sync mode",
+			"The cache "+cache.ID+" uses \""+mapping.SyncMode+"\" sync, which this resource does not manage. Changing retain_mirrors switches it to full sync.")
 	}
 
 	// Older caches may have no frequency stored, which the SquaredUp UI shows as 24 hours
@@ -637,13 +538,6 @@ func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (sq
 		ids, setDiags := types.SetValueFrom(ctx, types.StringType, objectIDs)
 		diags.Append(setDiags...)
 		state.ObjectIDs = ids
-	}
-
-	state.UniqueIdentifierColumns = types.ListNull(types.StringType)
-	if mapping.UniqueIdentifierColumns != nil && len(*mapping.UniqueIdentifierColumns) > 0 {
-		columns, listDiags := types.ListValueFrom(ctx, types.StringType, *mapping.UniqueIdentifierColumns)
-		diags.Append(listDiags...)
-		state.UniqueIdentifierColumns = columns
 	}
 
 	return state, diags

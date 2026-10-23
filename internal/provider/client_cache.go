@@ -14,11 +14,8 @@ type CacheDataStream struct {
 }
 
 type CacheStorage struct {
-	SyncMode                string    `json:"syncMode,omitempty"`
-	RetainMirrors           *int64    `json:"retainMirrors,omitempty"`
-	UniqueIdentifierColumns *[]string `json:"uniqueIdentifierColumns,omitempty"`
-	LastModifiedColumn      *string   `json:"lastModifiedColumn,omitempty"`
-	RetentionPeriodDays     *int64    `json:"retentionPeriodDays,omitempty"`
+	SyncMode      string `json:"syncMode,omitempty"`
+	RetainMirrors *int64 `json:"retainMirrors,omitempty"`
 }
 
 type CacheCreate struct {
