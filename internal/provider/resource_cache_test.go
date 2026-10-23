@@ -7,7 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/pborman/uuid"
 )
 
@@ -59,6 +63,11 @@ const (
 func TestAccResourceCache(t *testing.T) {
 	// Cache names are capped at 24 characters
 	suffix := uuid.NewRandom().String()[:8]
+
+	// An edit must change the existing cache, keeping its ID and table, rather than replace it
+	sameID := statecheck.CompareValue(compare.ValuesSame())
+	sameTable := statecheck.CompareValue(compare.ValuesSame())
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -73,6 +82,10 @@ func TestAccResourceCache(t *testing.T) {
 					resource.TestCheckResourceAttrSet("squaredup_cache.test", "id"),
 					resource.TestCheckResourceAttrSet("squaredup_cache.test", "table_name"),
 				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					sameID.AddStateValue("squaredup_cache.test", tfjsonpath.New("id")),
+					sameTable.AddStateValue("squaredup_cache.test", tfjsonpath.New("table_name")),
+				},
 			},
 			// Import Test
 			{
@@ -83,12 +96,21 @@ func TestAccResourceCache(t *testing.T) {
 			// Update Test
 			{
 				Config: cacheTestConfig("TF Renamed "+suffix, "120", "false", oneDatabase),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("squaredup_cache.test", plancheck.ResourceActionUpdate),
+					},
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("squaredup_cache.test", "display_name", "TF Renamed "+suffix),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "frequency_minutes", "120"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "false"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "object_ids.#", "1"),
 				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					sameID.AddStateValue("squaredup_cache.test", tfjsonpath.New("id")),
+					sameTable.AddStateValue("squaredup_cache.test", tfjsonpath.New("table_name")),
+				},
 			},
 		},
 	})
