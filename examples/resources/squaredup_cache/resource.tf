@@ -26,10 +26,9 @@ data "squaredup_nodes" "database_2" {
 
 # Syncs every hour for two objects
 resource "squaredup_cache" "database_free_space" {
-  display_name    = "Database Free Space"
-  data_source_id  = squaredup_datasource.sample_data_source.id
-  data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
-  supported_scope = "list"
+  display_name   = "Database Free Space"
+  data_source_id = squaredup_datasource.sample_data_source.id
+  data_stream_id = data.squaredup_data_streams.database_free_space.data_streams[0].id
   object_ids = [
     data.squaredup_nodes.database_1.node_properties[0].id,
     data.squaredup_nodes.database_2.node_properties[0].id,
@@ -46,10 +45,9 @@ resource "squaredup_cache" "database_free_space" {
 
 # Syncs every 15 minutes for every database, selected with a Gremlin query
 resource "squaredup_cache" "all_databases" {
-  display_name    = "All Databases"
-  data_source_id  = squaredup_datasource.sample_data_source.id
-  data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
-  supported_scope = "list"
+  display_name   = "All Databases"
+  data_source_id = squaredup_datasource.sample_data_source.id
+  data_stream_id = data.squaredup_data_streams.database_free_space.data_streams[0].id
   scope = jsonencode({
     query       = "g.V().has('sourceType', 'sample-database')"
     bindings    = {}

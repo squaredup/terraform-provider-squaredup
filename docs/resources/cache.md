@@ -50,10 +50,9 @@ data "squaredup_nodes" "database_2" {
 
 # Syncs every hour for two objects
 resource "squaredup_cache" "database_free_space" {
-  display_name    = "Database Free Space"
-  data_source_id  = squaredup_datasource.sample_data_source.id
-  data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
-  supported_scope = "list"
+  display_name   = "Database Free Space"
+  data_source_id = squaredup_datasource.sample_data_source.id
+  data_stream_id = data.squaredup_data_streams.database_free_space.data_streams[0].id
   object_ids = [
     data.squaredup_nodes.database_1.node_properties[0].id,
     data.squaredup_nodes.database_2.node_properties[0].id,
@@ -70,10 +69,9 @@ resource "squaredup_cache" "database_free_space" {
 
 # Syncs every 15 minutes for every database, selected with a Gremlin query
 resource "squaredup_cache" "all_databases" {
-  display_name    = "All Databases"
-  data_source_id  = squaredup_datasource.sample_data_source.id
-  data_stream_id  = data.squaredup_data_streams.database_free_space.data_streams[0].id
-  supported_scope = "list"
+  display_name   = "All Databases"
+  data_source_id = squaredup_datasource.sample_data_source.id
+  data_stream_id = data.squaredup_data_streams.database_free_space.data_streams[0].id
   scope = jsonencode({
     query       = "g.V().has('sourceType', 'sample-database')"
     bindings    = {}
@@ -97,7 +95,6 @@ output "database_free_space_table" {
 - `data_source_id` (String) The ID of the data source the cache is created from. A cache is treated as belonging to this data source. Changing this forces a new cache to be created.
 - `data_stream_id` (String) The ID of the data stream to cache
 - `display_name` (String) The cache name. It must be 2 to 24 characters, include at least one letter or number, and be unique among caches of the same data stream. The table name is generated from the cache name when the cache is created, so renaming a cache doesn't change its table name.
-- `supported_scope` (String) How the data stream is scoped to objects: `single`, `list` or `none`. Changing this forces a new cache to be created.
 
 ### Optional
 
@@ -111,6 +108,7 @@ output "database_free_space_table" {
 ### Read-Only
 
 - `id` (String) The ID of the cache
+- `supported_scope` (String) How the data stream accepts objects, as declared by its plugin: `none` (it doesn't work on objects), `list` (many objects per request) or `single` (one object per request, so each sync makes a request per object). Looked up from the data stream. Changing `data_stream_id` to a data stream that accepts objects differently forces a new cache to be created.
 - `table_name` (String) The name of the table the cache's data is stored in, for use in SQL queries (Parameters > Advanced query, or the Advanced Query data stream on the Cache data source). It is built from the data source, data stream and cache name when the cache is created, and doesn't change if the cache is renamed.
 
 ## Import

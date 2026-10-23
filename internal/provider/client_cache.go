@@ -3,6 +3,7 @@ package provider
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -145,4 +146,64 @@ func (c *SquaredUpClient) DeleteCache(cacheId string) error {
 
 	_, err = c.doRequest(req)
 	return err
+}
+
+type dataStreamPlugin struct {
+	PluginID       string `json:"pluginId"`
+	DataSourceName string `json:"dataSourceName"`
+}
+
+type pluginDataSources struct {
+	DataSources []struct {
+		Name           string `json:"name"`
+		SupportedScope string `json:"supportedScope"`
+	} `json:"dataSources"`
+}
+
+// GetDataStreamSupportedScope returns how a data stream accepts objects (single, list or none), as
+// declared by the plugin function behind it. The SquaredUp UI reads it the same way.
+func (c *SquaredUpClient) GetDataStreamSupportedScope(dataStreamId string) (string, error) {
+	req, err := http.NewRequest("GET", c.baseURL+"/api/datastreams/"+dataStreamId, nil)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	dataStream := dataStreamPlugin{}
+	err = json.Unmarshal(body, &dataStream)
+	if err != nil {
+		return "", err
+	}
+
+	req, err = http.NewRequest("GET", c.baseURL+"/api/plugins/"+dataStream.PluginID, nil)
+	if err != nil {
+		return "", err
+	}
+
+	body, err = c.doRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	plugin := pluginDataSources{}
+	err = json.Unmarshal(body, &plugin)
+	if err != nil {
+		return "", err
+	}
+
+	return findSupportedScope(plugin, dataStream)
+}
+
+func findSupportedScope(plugin pluginDataSources, dataStream dataStreamPlugin) (string, error) {
+	for _, dataSource := range plugin.DataSources {
+		if dataSource.Name == dataStream.DataSourceName && dataSource.SupportedScope != "" {
+			return dataSource.SupportedScope, nil
+		}
+	}
+
+	return "", fmt.Errorf("plugin %s declares no supported scope for %q", dataStream.PluginID, dataStream.DataSourceName)
 }

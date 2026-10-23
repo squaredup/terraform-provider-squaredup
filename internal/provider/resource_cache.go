@@ -28,6 +28,7 @@ var (
 	_ resource.Resource                = &CacheResource{}
 	_ resource.ResourceWithConfigure   = &CacheResource{}
 	_ resource.ResourceWithImportState = &CacheResource{}
+	_ resource.ResourceWithModifyPlan  = &CacheResource{}
 )
 
 func SquaredUpCacheResource() resource.Resource {
@@ -99,14 +100,9 @@ func (r *CacheResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				CustomType:          jsontypes.NormalizedType{},
 			},
 			"supported_scope": schema.StringAttribute{
-				MarkdownDescription: "How the data stream is scoped to objects: `single`, `list` or `none`. Changing this forces a new cache to be created.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("single", "list", "none"),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
+				MarkdownDescription: "How the data stream accepts objects, as declared by its plugin: `none` (it doesn't work on objects), `list` (many objects per request) or `single` (one object per request, so each sync makes a request per object). " +
+					"Looked up from the data stream. Changing `data_stream_id` to a data stream that accepts objects differently forces a new cache to be created.",
+				Computed: true,
 			},
 			"object_ids": schema.SetAttribute{
 				MarkdownDescription: "The IDs of the objects to cache data for, for example from the `squaredup_nodes` data source. Conflicts with `scope`.",
@@ -174,11 +170,88 @@ func (r *CacheResource) Configure(_ context.Context, req resource.ConfigureReque
 	r.client = client
 }
 
+// ModifyPlan looks up how the data stream accepts objects, so the plan can check the objects
+// configured against it, and replace the cache if a new data stream accepts them differently: the
+// API can't change it on an existing cache. It looks the data stream up only when it is new or
+// changed, and leaves it to apply when the data stream isn't known until then.
+func (r *CacheResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() || r.client == nil {
+		return
+	}
+
+	var plan squaredupCache
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	var state *squaredupCache
+	if !req.State.Raw.IsNull() {
+		state = &squaredupCache{}
+		resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	}
+	if resp.Diagnostics.HasError() || plan.DataStreamID.IsUnknown() {
+		return
+	}
+
+	if state != nil && plan.DataStreamID.Equal(state.DataStreamID) {
+		plan.SupportedScope = state.SupportedScope
+	} else {
+		supportedScope, err := r.client.GetDataStreamSupportedScope(plan.DataStreamID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(path.Root("data_stream_id"), "Unable to look up the data stream", err.Error())
+			return
+		}
+		plan.SupportedScope = types.StringValue(supportedScope)
+
+		if state != nil && !plan.SupportedScope.Equal(state.SupportedScope) {
+			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("supported_scope"))
+		}
+	}
+
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("supported_scope"), plan.SupportedScope)...)
+	resp.Diagnostics.Append(supportedScopeDiagnostics(plan)...)
+}
+
+// supportedScopeDiagnostics checks the objects configured against how the data stream accepts them.
+func supportedScopeDiagnostics(plan squaredupCache) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if plan.SupportedScope.IsUnknown() || plan.SupportedScope.IsNull() || plan.ObjectIDs.IsUnknown() || plan.Scope.IsUnknown() {
+		return diags
+	}
+
+	hasObjects := !plan.ObjectIDs.IsNull() || !plan.Scope.IsNull()
+	switch {
+	case plan.SupportedScope.ValueString() == "none" && hasObjects:
+		attribute := "object_ids"
+		if plan.ObjectIDs.IsNull() {
+			attribute = "scope"
+		}
+		diags.AddAttributeError(path.Root(attribute), "Data stream doesn't work on objects",
+			"This data stream returns data that isn't for specific objects, so remove "+attribute+".")
+	case plan.SupportedScope.ValueString() != "none" && !hasObjects:
+		diags.AddAttributeWarning(path.Root("object_ids"), "No objects to cache",
+			"This data stream returns data for objects, but neither object_ids nor scope is set, so the cache may sync no data.")
+	}
+
+	return diags
+}
+
 func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan squaredupCache
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Unknown when the data stream wasn't known at plan time
+	if plan.SupportedScope.IsUnknown() {
+		supportedScope, err := r.client.GetDataStreamSupportedScope(plan.DataStreamID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to look up the data stream", err.Error())
+			return
+		}
+		plan.SupportedScope = types.StringValue(supportedScope)
+		resp.Diagnostics.Append(supportedScopeDiagnostics(plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	dataStream, diags := cacheDataStream(plan)
@@ -260,6 +333,22 @@ func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Unknown when the data stream wasn't known at plan time, so a change that needs a new cache
+	// could not be planned as one
+	if plan.SupportedScope.IsUnknown() {
+		supportedScope, err := r.client.GetDataStreamSupportedScope(plan.DataStreamID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to look up the data stream", err.Error())
+			return
+		}
+		if supportedScope != state.SupportedScope.ValueString() {
+			resp.Diagnostics.AddAttributeError(path.Root("data_stream_id"), "Data stream change needs a new cache",
+				"The new data stream accepts objects differently (\""+supportedScope+"\" rather than \""+state.SupportedScope.ValueString()+"\"), which an existing cache can't change. "+
+					"Run terraform apply again: now the data stream is known, the plan replaces the cache.")
+			return
+		}
 	}
 
 	patch := CachePatch{}

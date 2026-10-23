@@ -47,7 +47,6 @@ resource "squaredup_cache" "test" {
 	display_name      = "` + displayName + `"
 	data_source_id    = squaredup_datasource.sample_data_source.id
 	data_stream_id    = data.squaredup_data_streams.database_free_space.data_streams[0].id
-	supported_scope   = "list"
 	object_ids        = ` + objectIDs + `
 	frequency_minutes = ` + frequencyMinutes + `
 	enabled           = ` + enabled + `
@@ -79,6 +78,7 @@ func TestAccResourceCache(t *testing.T) {
 					resource.TestCheckResourceAttr("squaredup_cache.test", "timeframe", "last24hours"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("squaredup_cache.test", "object_ids.#", "2"),
+					resource.TestCheckResourceAttr("squaredup_cache.test", "supported_scope", "list"),
 					resource.TestCheckResourceAttrSet("squaredup_cache.test", "id"),
 					resource.TestCheckResourceAttrSet("squaredup_cache.test", "table_name"),
 				),
@@ -235,5 +235,52 @@ func TestCacheStateReadsObjectIDsUnlessScopeIsConfigured(t *testing.T) {
 	state, _ = cacheState(context.Background(), read, withScope)
 	if !state.ObjectIDs.IsNull() {
 		t.Errorf("object_ids should stay null when the configuration uses scope, got %v", state.ObjectIDs)
+	}
+}
+
+func TestFindSupportedScopeMatchesTheDataStreamsFunction(t *testing.T) {
+	plugin := pluginDataSources{}
+	_ = json.Unmarshal([]byte(`{"dataSources":[{"name":"getHealth","supportedScope":"single"},{"name":"getData","supportedScope":"list"}]}`), &plugin)
+
+	supportedScope, err := findSupportedScope(plugin, dataStreamPlugin{PluginID: "plugin-abc", DataSourceName: "getData"})
+	if err != nil || supportedScope != "list" {
+		t.Errorf("supported scope = %q, %v, want list", supportedScope, err)
+	}
+
+	if _, err := findSupportedScope(plugin, dataStreamPlugin{PluginID: "plugin-abc", DataSourceName: "missing"}); err == nil {
+		t.Error("a function the plugin doesn't declare should be an error, not a guess")
+	}
+}
+
+func TestSupportedScopeDiagnostics(t *testing.T) {
+	objectIDs, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"node-a"})
+	noObjects := squaredupCache{ObjectIDs: types.SetNull(types.StringType), Scope: jsontypes.NewNormalizedNull()}
+	withObjects := squaredupCache{ObjectIDs: objectIDs, Scope: jsontypes.NewNormalizedNull()}
+
+	cases := []struct {
+		name           string
+		plan           squaredupCache
+		supportedScope string
+		wantErrors     int
+		wantWarnings   int
+	}{
+		{"objects on a stream that doesn't work on objects", withObjects, "none", 1, 0},
+		{"no objects on a stream that doesn't work on objects", noObjects, "none", 0, 0},
+		{"objects on a per-object stream", withObjects, "list", 0, 0},
+		{"no objects on a per-object stream", noObjects, "single", 0, 1},
+	}
+
+	for _, c := range cases {
+		c.plan.SupportedScope = types.StringValue(c.supportedScope)
+		diags := supportedScopeDiagnostics(c.plan)
+		if diags.ErrorsCount() != c.wantErrors || diags.WarningsCount() != c.wantWarnings {
+			t.Errorf("%s: got %d errors and %d warnings, want %d and %d", c.name, diags.ErrorsCount(), diags.WarningsCount(), c.wantErrors, c.wantWarnings)
+		}
+	}
+
+	unknown := withObjects
+	unknown.SupportedScope = types.StringUnknown()
+	if diags := supportedScopeDiagnostics(unknown); diags.HasError() || diags.WarningsCount() > 0 {
+		t.Errorf("nothing can be checked before the data stream is known, got %v", diags)
 	}
 }
