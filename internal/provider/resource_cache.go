@@ -3,7 +3,9 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"sort"
 
@@ -248,10 +250,12 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 			return
 		}
 		plan.SupportedScope = types.StringValue(supportedScope)
-		resp.Diagnostics.Append(supportedScopeDiagnostics(plan)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	}
+
+	// Repeated here because the objects may not have been known at plan time either
+	resp.Diagnostics.Append(supportedScopeDiagnostics(plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	dataStream, diags := cacheDataStream(plan)
@@ -279,6 +283,13 @@ func (r *CacheResource) Create(ctx context.Context, req resource.CreateRequest, 
 			"Unable to create cache",
 			err.Error(),
 		)
+		return
+	}
+
+	// Saved straight away, so a failure below leaves the cache tracked (as tainted) rather than
+	// orphaned, where its name would block the next create on the same data stream
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), cacheId)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -349,6 +360,13 @@ func (r *CacheResource) Update(ctx context.Context, req resource.UpdateRequest, 
 					"Run terraform apply again: now the data stream is known, the plan replaces the cache.")
 			return
 		}
+		plan.SupportedScope = types.StringValue(supportedScope)
+	}
+
+	// Repeated here because the objects may not have been known at plan time either
+	resp.Diagnostics.Append(supportedScopeDiagnostics(plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	patch := CachePatch{}
@@ -426,6 +444,10 @@ func (r *CacheResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	}
 
 	err := r.client.DeleteCache(state.ID.ValueString())
+	var apiErr *APIError
+	if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound {
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to delete cache",
@@ -489,10 +511,10 @@ func cacheScope(ctx context.Context, plan squaredupCache) (interface{}, diag.Dia
 		diags := plan.ObjectIDs.ElementsAs(ctx, &ids, false)
 		sort.Strings(ids)
 
-		return map[string]interface{}{
-			"query":       "g.V().has('id', within(" + objectIDsBinding + "))",
-			"bindings":    map[string]interface{}{objectIDsBinding: ids},
-			"queryDetail": map[string]interface{}{"ids": ids},
+		return CacheObjectScope{
+			Query:       "g.V().has('id', within(" + objectIDsBinding + "))",
+			Bindings:    map[string]interface{}{objectIDsBinding: ids},
+			QueryDetail: ScopeQueryDetail{IDs: ids},
 		}, diags
 	}
 
@@ -581,8 +603,14 @@ func cacheState(ctx context.Context, cache *CacheRead, prior squaredupCache) (sq
 	}
 
 	// Timeframes set outside Terraform can be objects, which this resource does not model
-	if timeframe, ok := step.Timeframe.(string); ok {
+	switch timeframe := step.Timeframe.(type) {
+	case string:
 		state.Timeframe = types.StringValue(timeframe)
+	case nil:
+	default:
+		diags.AddWarning("Cache timeframe not managed",
+			"The cache "+cache.ID+" has a timeframe set in SquaredUp that this resource can't represent. "+
+				"Applying replaces it with the configured timeframe, which defaults to last24hours.")
 	}
 
 	if len(step.DataStream.DataSourceConfig) > 0 {

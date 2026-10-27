@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // APIError is returned for any non-success response, so callers can act on the status code.
@@ -22,6 +23,10 @@ type SquaredUpClient struct {
 	apiKey     string
 	httpClient *http.Client
 	version    string
+
+	// Lookups for caches' supported scope, see GetDataStreamSupportedScope
+	dataStreamPlugins sync.Map
+	pluginDataSources sync.Map
 }
 
 func NewSquaredUpClient(region string, apiKey string, version string) (*SquaredUpClient, error) {

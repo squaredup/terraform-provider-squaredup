@@ -8,54 +8,6 @@ import (
 	"strings"
 )
 
-type CacheDataStream struct {
-	ID               string                 `json:"id"`
-	PluginConfigID   string                 `json:"pluginConfigId,omitempty"`
-	DataSourceConfig map[string]interface{} `json:"dataSourceConfig,omitempty"`
-}
-
-type CacheCreate struct {
-	DisplayName      string          `json:"displayName"`
-	PluginConfigID   string          `json:"pluginConfigId"`
-	DataStream       CacheDataStream `json:"dataStream"`
-	SupportedScope   string          `json:"supportedScope"`
-	Scope            interface{}     `json:"scope,omitempty"`
-	Timeframe        string          `json:"timeframe,omitempty"`
-	FrequencyMinutes *int64          `json:"frequencyMinutes,omitempty"`
-	// Caches only support full sync
-	SyncMode string `json:"syncMode"`
-}
-
-// CachePatch only carries the fields that changed, as a rename or a data stream change
-// starts work on the server even when the value sent matches what is stored.
-type CachePatch struct {
-	DisplayName      *string          `json:"displayName,omitempty"`
-	DataStream       *CacheDataStream `json:"dataStream,omitempty"`
-	Scope            interface{}      `json:"scope,omitempty"`
-	Timeframe        *string          `json:"timeframe,omitempty"`
-	FrequencyMinutes *int64           `json:"frequencyMinutes,omitempty"`
-}
-
-type CacheStep struct {
-	DataStream     CacheDataStream `json:"dataStream"`
-	Timeframe      interface{}     `json:"timeframe"`
-	SupportedScope string          `json:"supportedScope"`
-	Scope          interface{}     `json:"scope"`
-	CacheMapping   struct {
-		TableName string `json:"tableName"`
-		SyncMode  string `json:"syncMode"`
-	} `json:"smartCacheMapping"`
-}
-
-type CacheRead struct {
-	ID               string      `json:"id"`
-	Name             string      `json:"name"`
-	DisplayName      string      `json:"displayName"`
-	FrequencyMinutes int64       `json:"frequencyMinutes"`
-	Enabled          bool        `json:"enabled"`
-	Steps            []CacheStep `json:"steps"`
-}
-
 func (c *SquaredUpClient) CreateCache(cache CacheCreate) (string, error) {
 	rb, err := json.Marshal(cache)
 	if err != nil {
@@ -148,54 +100,76 @@ func (c *SquaredUpClient) DeleteCache(cacheId string) error {
 	return err
 }
 
-type dataStreamPlugin struct {
-	PluginID       string `json:"pluginId"`
-	DataSourceName string `json:"dataSourceName"`
-}
-
-type pluginDataSources struct {
-	DataSources []struct {
-		Name           string `json:"name"`
-		SupportedScope string `json:"supportedScope"`
-	} `json:"dataSources"`
-}
-
 // GetDataStreamSupportedScope returns how a data stream accepts objects (single, list or none), as
 // declared by the plugin function behind it. The SquaredUp UI reads it the same way.
 func (c *SquaredUpClient) GetDataStreamSupportedScope(dataStreamId string) (string, error) {
-	req, err := http.NewRequest("GET", c.baseURL+"/api/datastreams/"+dataStreamId, nil)
+	dataStream, err := c.getDataStreamPlugin(dataStreamId)
 	if err != nil {
 		return "", err
 	}
 
-	body, err := c.doRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	dataStream := dataStreamPlugin{}
-	err = json.Unmarshal(body, &dataStream)
-	if err != nil {
-		return "", err
-	}
-
-	req, err = http.NewRequest("GET", c.baseURL+"/api/plugins/"+dataStream.PluginID, nil)
-	if err != nil {
-		return "", err
-	}
-
-	body, err = c.doRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	plugin := pluginDataSources{}
-	err = json.Unmarshal(body, &plugin)
+	plugin, err := c.getPluginDataSources(dataStream.PluginID)
 	if err != nil {
 		return "", err
 	}
 
 	return findSupportedScope(plugin, dataStream)
+}
+
+// The lookups are cached for the life of the provider, a single plan or apply, so caches sharing a
+// data stream or plugin don't each fetch it.
+func (c *SquaredUpClient) getDataStreamPlugin(dataStreamId string) (dataStreamPlugin, error) {
+	if cached, ok := c.dataStreamPlugins.Load(dataStreamId); ok {
+		if value, ok := cached.(dataStreamPlugin); ok {
+			return value, nil
+		}
+	}
+
+	req, err := http.NewRequest("GET", c.baseURL+"/api/datastreams/"+dataStreamId, nil)
+	if err != nil {
+		return dataStreamPlugin{}, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return dataStreamPlugin{}, err
+	}
+
+	dataStream := dataStreamPlugin{}
+	err = json.Unmarshal(body, &dataStream)
+	if err != nil {
+		return dataStreamPlugin{}, err
+	}
+
+	c.dataStreamPlugins.Store(dataStreamId, dataStream)
+	return dataStream, nil
+}
+
+func (c *SquaredUpClient) getPluginDataSources(pluginId string) (pluginDataSources, error) {
+	if cached, ok := c.pluginDataSources.Load(pluginId); ok {
+		if value, ok := cached.(pluginDataSources); ok {
+			return value, nil
+		}
+	}
+
+	req, err := http.NewRequest("GET", c.baseURL+"/api/plugins/"+pluginId, nil)
+	if err != nil {
+		return pluginDataSources{}, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return pluginDataSources{}, err
+	}
+
+	plugin := pluginDataSources{}
+	err = json.Unmarshal(body, &plugin)
+	if err != nil {
+		return pluginDataSources{}, err
+	}
+
+	c.pluginDataSources.Store(pluginId, plugin)
+	return plugin, nil
 }
 
 func findSupportedScope(plugin pluginDataSources, dataStream dataStreamPlugin) (string, error) {

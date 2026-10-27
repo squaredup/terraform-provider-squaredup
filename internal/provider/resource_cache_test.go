@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -193,7 +195,7 @@ func TestCacheScopeBuildsObjectIDsScope(t *testing.T) {
 	}
 
 	got, _ := json.Marshal(scope)
-	want := `{"bindings":{"ids_objectIds":["node-a","node-b"]},"query":"g.V().has('id', within(ids_objectIds))","queryDetail":{"ids":["node-a","node-b"]}}`
+	want := `{"query":"g.V().has('id', within(ids_objectIds))","bindings":{"ids_objectIds":["node-a","node-b"]},"queryDetail":{"ids":["node-a","node-b"]}}`
 	if string(got) != want {
 		t.Errorf("scope = %s, want %s", got, want)
 	}
@@ -283,5 +285,48 @@ func TestSupportedScopeDiagnostics(t *testing.T) {
 	unknown.SupportedScope = types.StringUnknown()
 	if diags := supportedScopeDiagnostics(unknown); diags.HasError() || diags.WarningsCount() > 0 {
 		t.Errorf("nothing can be checked before the data stream is known, got %v", diags)
+	}
+}
+
+func TestCacheStateWarnsWhenTimeframeIsNotManaged(t *testing.T) {
+	read := &CacheRead{ID: "smartcachedefinition-abc", DisplayName: "Costs", Steps: []CacheStep{{
+		Timeframe: map[string]interface{}{"start": "2026-01-01", "end": "2026-02-01"},
+	}}}
+
+	state, diags := cacheState(context.Background(), read, squaredupCache{Timeframe: types.StringNull()})
+	if diags.HasError() || diags.WarningsCount() != 1 {
+		t.Errorf("a timeframe this resource can't represent should warn, got %v", diags)
+	}
+	if !state.Timeframe.IsNull() {
+		t.Errorf("timeframe should stay as it was, got %v", state.Timeframe)
+	}
+}
+
+func TestGetDataStreamSupportedScopeCachesLookups(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		switch r.URL.Path {
+		case "/api/datastreams/datastream-a", "/api/datastreams/datastream-b":
+			_, _ = w.Write([]byte(`{"pluginId":"plugin-abc","dataSourceName":"getData"}`))
+		case "/api/plugins/plugin-abc":
+			_, _ = w.Write([]byte(`{"dataSources":[{"name":"getData","supportedScope":"list"}]}`))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	client := &SquaredUpClient{baseURL: server.URL, httpClient: server.Client()}
+	for _, dataStreamId := range []string{"datastream-a", "datastream-a", "datastream-b"} {
+		supportedScope, err := client.GetDataStreamSupportedScope(dataStreamId)
+		if err != nil || supportedScope != "list" {
+			t.Fatalf("supported scope = %q, %v, want list", supportedScope, err)
+		}
+	}
+
+	// One request per distinct data stream, and one for the plugin they share
+	if requests != 3 {
+		t.Errorf("made %d requests, want 3", requests)
 	}
 }
