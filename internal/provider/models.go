@@ -218,3 +218,71 @@ type DashboardVariableRead struct {
 	Name        string            `json:"name"`
 	ID          string            `json:"id"`
 }
+
+type CacheDataStream struct {
+	ID               string                 `json:"id"`
+	PluginConfigID   string                 `json:"pluginConfigId,omitempty"`
+	DataSourceConfig map[string]interface{} `json:"dataSourceConfig,omitempty"`
+}
+
+type CacheCreate struct {
+	DisplayName      string          `json:"displayName"`
+	PluginConfigID   string          `json:"pluginConfigId"`
+	DataStream       CacheDataStream `json:"dataStream"`
+	SupportedScope   string          `json:"supportedScope"`
+	Scope            interface{}     `json:"scope,omitempty"`
+	Timeframe        string          `json:"timeframe,omitempty"`
+	FrequencyMinutes *int64          `json:"frequencyMinutes,omitempty"`
+	// Caches only support full sync
+	SyncMode string `json:"syncMode"`
+}
+
+// CachePatch only carries the fields that changed, as a rename or a data stream change
+// starts work on the server even when the value sent matches what is stored.
+type CachePatch struct {
+	DisplayName      *string          `json:"displayName,omitempty"`
+	DataStream       *CacheDataStream `json:"dataStream,omitempty"`
+	Scope            interface{}      `json:"scope,omitempty"`
+	Timeframe        *string          `json:"timeframe,omitempty"`
+	FrequencyMinutes *int64           `json:"frequencyMinutes,omitempty"`
+}
+
+type CacheStep struct {
+	DataStream     CacheDataStream `json:"dataStream"`
+	Timeframe      interface{}     `json:"timeframe"`
+	SupportedScope string          `json:"supportedScope"`
+	Scope          interface{}     `json:"scope"`
+	CacheMapping   struct {
+		TableName string `json:"tableName"`
+		SyncMode  string `json:"syncMode"`
+	} `json:"smartCacheMapping"`
+}
+
+type CacheRead struct {
+	ID               string      `json:"id"`
+	Name             string      `json:"name"`
+	DisplayName      string      `json:"displayName"`
+	FrequencyMinutes int64       `json:"frequencyMinutes"`
+	Enabled          bool        `json:"enabled"`
+	Steps            []CacheStep `json:"steps"`
+}
+
+// CacheObjectScope is the scope a cache saves for a list of objects, in the shape the SquaredUp UI
+// saves one. Scope can't be used, as it always sends a collection's name and version.
+type CacheObjectScope struct {
+	Query       string                 `json:"query"`
+	Bindings    map[string]interface{} `json:"bindings"`
+	QueryDetail ScopeQueryDetail       `json:"queryDetail"`
+}
+
+type dataStreamPlugin struct {
+	PluginID       string `json:"pluginId"`
+	DataSourceName string `json:"dataSourceName"`
+}
+
+type pluginDataSources struct {
+	DataSources []struct {
+		Name           string `json:"name"`
+		SupportedScope string `json:"supportedScope"`
+	} `json:"dataSources"`
+}
