@@ -38,19 +38,19 @@ resource "squaredup_scope" "advanced_scope" {
 	scope_type     = "advanced"
 	display_name   = "Advanced Scope - ` + uuid + `"
 	workspace_id   = squaredup_workspace.application_workspace.id
-	advanced_query = "g.V().has('__configId', '${squaredup_datasource.sample_data_source.id}').has('sourceId', 'sample-server-2')"
+	advanced_query = "g.V().has('__configId', '${squaredup_datasource.sample_data_source.id}').has('__name', 'Web Frontend')"
 }
 
 data "squaredup_nodes" "acommon_node" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_name      = "account-common-lambda"
+	node_name      = "Web Frontend"
 }
 
 data "squaredup_nodes" "api_node" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_name      = "master-api-lambda"
+	node_name      = "API Gateway"
 }
 
 resource "squaredup_scope" "fixed_scope" {
@@ -65,8 +65,8 @@ resource "squaredup_scope" "dynamic_scope" {
 	display_name   = "Dynamic Scope - ` + uuid + `"
 	workspace_id   = squaredup_workspace.application_workspace.id
 	data_source_id = [squaredup_datasource.sample_data_source.id]
-	types          = ["sample-function"]
-	search_query   = "account-common"
+	types          = ["Service"]
+	search_query   = "Web"
 }
 				  `,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -150,19 +150,19 @@ resource "squaredup_scope" "advanced_scope" {
 	scope_type     = "advanced"
 	display_name   = "Advanced Scope Updated - ` + uuid + `"
 	workspace_id   = squaredup_workspace.application_workspace.id
-	advanced_query = "g.V().has('__configId', '${squaredup_datasource.sample_data_source.id}').has('sourceId', 'sample-server-2')"
+	advanced_query = "g.V().has('__configId', '${squaredup_datasource.sample_data_source.id}').has('__name', 'Web Frontend')"
 }
 
 data "squaredup_nodes" "acommon_node" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_name      = "account-common-lambda"
+	node_name      = "Web Frontend"
 }
 
 data "squaredup_nodes" "api_node" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_name      = "master-api-lambda"
+	node_name      = "API Gateway"
 }
 
 resource "squaredup_scope" "fixed_scope" {

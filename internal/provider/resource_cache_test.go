@@ -37,13 +37,13 @@ data "squaredup_data_streams" "database_free_space" {
 data "squaredup_nodes" "database_1" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_source_id = "web-use-01"
+	node_name      = "web-use-01"
 }
 
 data "squaredup_nodes" "database_2" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_source_id = "web-use-02"
+	node_name      = "web-use-02"
 }
 
 resource "squaredup_cache" "test" {
