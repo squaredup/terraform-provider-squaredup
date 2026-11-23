@@ -31,19 +31,19 @@ resource "squaredup_datasource" "sample_data_source" {
 
 data "squaredup_data_streams" "database_free_space" {
 	data_source_id              = data.squaredup_datasources.sample_data.plugins[0].id
-	data_stream_definition_name = "database-free-space"
+	data_stream_definition_name = "hostPerformance"
 }
 
 data "squaredup_nodes" "database_1" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_source_id = "sample-database-1"
+	node_name      = "web-use-01"
 }
 
 data "squaredup_nodes" "database_2" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_source_id = "sample-database-2"
+	node_name      = "web-use-02"
 }
 
 resource "squaredup_cache" "test" {
