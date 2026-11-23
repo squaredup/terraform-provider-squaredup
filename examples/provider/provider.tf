@@ -1,4 +1,4 @@
 provider "squaredup" {
-  region  = "us/eu"
+  region  = "us" # us, eu or au
   api_key = "api-key"
 }
