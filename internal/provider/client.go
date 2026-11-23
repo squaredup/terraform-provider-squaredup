@@ -62,6 +62,8 @@ func determineBaseURL(region string) (string, error) {
 		return "https://api.squaredup.com", nil
 	} else if region == "eu" {
 		return "https://eu.api.squaredup.com", nil
+	} else if region == "au" {
+		return "https://au.api.squaredup.com", nil
 	} else if strings.HasPrefix(region, "https://") {
 		region = strings.TrimSuffix(region, "/")
 		return region, nil

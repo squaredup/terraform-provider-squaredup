@@ -13,7 +13,7 @@ Interact with Squaredup
 
 ```terraform
 provider "squaredup" {
-  region  = "us/eu"
+  region  = "us" # us, eu or au
   api_key = "api-key"
 }
 ```
@@ -24,4 +24,4 @@ provider "squaredup" {
 ### Optional
 
 - `api_key` (String, Sensitive) API Key for SquaredUp API. May also be set via the SQUAREDUP_API_KEY environment variable.
-- `region` (String) Region of your SquaredUp instance. May also be set via the SQUAREDUP_REGION environment variable.
+- `region` (String) Region of your SquaredUp instance: `us`, `eu` or `au`, or the URL of its API, such as `https://au.api.squaredup.com`. May also be set via the SQUAREDUP_REGION environment variable.

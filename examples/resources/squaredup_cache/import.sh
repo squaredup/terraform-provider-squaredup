@@ -1,6 +1,8 @@
 # Caches are imported by their cache ID. List your caches with the API to find
-# it. Each row shows the cache ID, cache name, data stream and table name. The
-# table name is unique and shown in Settings > Data > Caches > Edit cache.
+# it, using your region's API host: api.squaredup.com (US), eu.api.squaredup.com
+# (EU) or au.api.squaredup.com (AU). Each row shows the cache ID, cache name,
+# data stream and table name. The table name is unique and shown in
+# Settings > Data > Caches > Edit cache.
 curl -s "https://api.squaredup.com/api/smartcache?apiKey=$SQUAREDUP_API_KEY" |
   jq -r '.[] | [.id, (.displayName // .name), .steps[0].dataStreamName, .steps[0].smartCacheMapping.tableName] | @tsv'
 
