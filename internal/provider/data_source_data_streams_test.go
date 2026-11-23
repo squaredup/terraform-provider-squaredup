@@ -19,12 +19,12 @@ data "squaredup_datasources" "sample_data" {
 
 data "squaredup_data_streams" "sample_data_logs_dataStreams" {
 	data_source_id = data.squaredup_datasources.sample_data.plugins[0].id
-	data_stream_definition_name = "logs"
+	data_stream_definition_name = "hostHealth"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.squaredup_data_streams.sample_data_logs_dataStreams", "data_streams.#", "1"),
-					resource.TestCheckResourceAttr("data.squaredup_data_streams.sample_data_logs_dataStreams", "data_streams.0.definition_name", "logs"),
+					resource.TestCheckResourceAttr("data.squaredup_data_streams.sample_data_logs_dataStreams", "data_streams.0.definition_name", "hostHealth"),
 				),
 			},
 		},

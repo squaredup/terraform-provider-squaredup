@@ -27,12 +27,12 @@ resource "squaredup_datasource" "sample_data_source" {
 data "squaredup_nodes" "acc_common_node" {
 	depends_on     = [squaredup_datasource.sample_data_source]
 	data_source_id = squaredup_datasource.sample_data_source.id
-	node_name      = "account-common-lambda"
+	node_name = "Web Frontend"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.squaredup_nodes.acc_common_node", "node_properties.0.id"),
-					resource.TestCheckResourceAttr("data.squaredup_nodes.acc_common_node", "node_properties.0.display_name", "account-common-lambda"),
+					resource.TestCheckResourceAttr("data.squaredup_nodes.acc_common_node", "node_properties.0.display_name", "Web Frontend"),
 				),
 			},
 		},
