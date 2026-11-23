@@ -38,8 +38,8 @@ data "squaredup_data_streams" "sample_data_logs_dataStreams" {
 }
 
 locals {
-	logs_data_stream               = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "logs")]
-	perf_lambda_errors_data_stream = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "perf-lambda-errors")]
+	logs_data_stream               = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "serviceHealth")]
+	perf_lambda_errors_data_stream = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "serviceHealth")]
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
@@ -77,7 +77,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"pluginConfigId": "{{sample_data_source_id}}"
 				},
 				"scope": {
-					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").or(__.has(\"sourceType\", within(\"sample-function\",\"sample-server\",\"sample-database\"))).limit(500)",
+					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").has(\"sourceType\", \"Service\").limit(500)",
 					"bindings": {},
 					"queryDetail": {}
 				}
@@ -98,20 +98,6 @@ resource "squaredup_dashboard" "sample_dashboard" {
 				"dataStream": {
 					"id": "{{perf_lambda_errors_id}}",
 					"pluginConfigId": "{{sample_data_source_id}}",
-					"group": {
-						"by": [
-							"data.lambdaErrors.label",
-							"uniqueValues"
-						],
-						"aggregate": [
-							{
-								"names": [
-									"data.lambdaErrors.value"
-								],
-								"type": "sum"
-							}
-						]
-					},
 					"filter": {
 						"filters": [],
 						"multiOperation": "and"
@@ -121,7 +107,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"type": "data-stream-donut-chart"
 				},
 				"scope": {
-					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").or(__.has(\"sourceType\", \"sample-function\")).limit(500)",
+					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").has(\"sourceType\", \"Service\").limit(500)",
 					"bindings": {},
 					"queryDetail": {}
 				},
@@ -131,10 +117,10 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"monitorType": "threshold",
 					"frequency": 15,
 					"aggregation": "top",
-					"column": "data.lambdaErrors.value_sum",
+					"column": "errorRatePercent",
 					"condition": {
 						"columns": [
-							"data.lambdaErrors.value_sum"
+							"errorRatePercent"
 						],
 						"logic": {
 							"if": [
@@ -255,8 +241,8 @@ data "squaredup_data_streams" "sample_data_logs_dataStreams" {
 }
 
 locals {
-	logs_data_stream               = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "logs")]
-	perf_lambda_errors_data_stream = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "perf-lambda-errors")]
+	logs_data_stream               = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "serviceHealth")]
+	perf_lambda_errors_data_stream = data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams[index(data.squaredup_data_streams.sample_data_logs_dataStreams.data_streams.*.definition_name, "serviceHealth")]
 }
 
 resource "squaredup_dashboard" "sample_dashboard" {
@@ -294,7 +280,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"pluginConfigId": "{{sample_data_source_id}}"
 				},
 				"scope": {
-					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").or(__.has(\"sourceType\", within(\"sample-function\",\"sample-server\",\"sample-database\"))).limit(500)",
+					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").has(\"sourceType\", \"Service\").limit(500)",
 					"bindings": {},
 					"queryDetail": {}
 				}
@@ -315,20 +301,6 @@ resource "squaredup_dashboard" "sample_dashboard" {
 				"dataStream": {
 					"id": "{{perf_lambda_errors_id}}",
 					"pluginConfigId": "{{sample_data_source_id}}",
-					"group": {
-						"by": [
-							"data.lambdaErrors.label",
-							"uniqueValues"
-						],
-						"aggregate": [
-							{
-								"names": [
-									"data.lambdaErrors.value"
-								],
-								"type": "sum"
-							}
-						]
-					},
 					"filter": {
 						"filters": [],
 						"multiOperation": "and"
@@ -338,7 +310,7 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"type": "data-stream-donut-chart"
 				},
 				"scope": {
-					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").or(__.has(\"sourceType\", \"sample-function\")).limit(500)",
+					"query": "g.V().order().by('__name').hasNot('__canonicalType').has(\"__configId\", \"{{sample_data_source_id}}\").has(\"sourceType\", \"Service\").limit(500)",
 					"bindings": {},
 					"queryDetail": {}
 				},
@@ -348,10 +320,10 @@ resource "squaredup_dashboard" "sample_dashboard" {
 					"monitorType": "threshold",
 					"frequency": 15,
 					"aggregation": "top",
-					"column": "data.lambdaErrors.value_sum",
+					"column": "errorRatePercent",
 					"condition": {
 						"columns": [
-							"data.lambdaErrors.value_sum"
+							"errorRatePercent"
 						],
 						"logic": {
 							"if": [
