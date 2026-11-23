@@ -123,10 +123,10 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 	for _, node := range nodes {
 		nodeProperties := squaredupNodesProperties{
 			ID:          types.StringValue(node.ID),
-			SourceName:  types.StringValue(node.SourceName[0]),
-			DisplayName: types.StringValue(node.DisplayName[0]),
-			SourceID:    types.StringValue(node.SourceID[0]),
-			Type:        types.StringValue(node.Type[0]),
+			SourceName:  types.StringValue(firstOrEmpty(node.SourceName)),
+			DisplayName: types.StringValue(firstOrEmpty(node.DisplayName)),
+			SourceID:    types.StringValue(firstOrEmpty(node.SourceID)),
+			Type:        types.StringValue(firstOrEmpty(node.Type)),
 		}
 		NodeProperties = append(NodeProperties, nodeProperties)
 	}
@@ -137,4 +137,13 @@ func (d *squaredupNodes) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// firstOrEmpty returns the first value, or "" when the node has none
+// (for example, nodes from plugins that do not set a type).
+func firstOrEmpty(values []string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
 }
